@@ -151,3 +151,9 @@ Il miglior set stimato non viene salvato nel database. È una metrica derivata d
 L'aggregazione settimanale dello storico esercizio non viene salvata nel database. È una vista derivata dai dati del diario e dai riepiloghi sessione già calcolati per la pagina `/statistics/exercises/{slug}`. Le settimane usano il calendario ISO, con inizio lunedì e fine domenica, così il comportamento resta prevedibile anche quando l'anno cambia.
 
 Il RIR medio settimanale è ponderato sul numero di serie della sessione, non calcolato come semplice media delle medie sessione. Questa scelta evita che una sessione con poche serie pesi quanto una sessione completa.
+
+## Decisione Step 33A - menu top raggruppato per area funzionale
+
+La barra principale deve rimanere una navigazione di primo livello, non l'elenco completo di tutte le pagine operative. Per questo le voci di catalogo e configurazione sono state raggruppate sotto `Palestra`, mentre le voci legate alla pratica dell'allenamento sono state raggruppate sotto `Allenamento`. Dashboard e Statistiche restano link diretti perché sono viste trasversali e frequentemente consultate.
+
+La scelta evita soluzioni fragili come ridurre il font, lasciare andare il menu a capo o aggiungere una sidebar prematura. Se il numero di funzioni crescerà molto, la stessa logica potrà essere estesa con altri gruppi senza cambiare le rotte esistenti.

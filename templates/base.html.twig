@@ -40,6 +40,9 @@
             .app-trend-track { height: 7rem; display: flex; align-items: end; justify-content: center; border-bottom: 1px solid var(--tblr-border-color); }
             .app-trend-fill { width: 100%; max-width: 2.25rem; min-height: .25rem; border-radius: var(--tblr-border-radius) var(--tblr-border-radius) 0 0; background: var(--tblr-primary); opacity: .82; }
             .app-trend-label { font-size: .7rem; color: var(--tblr-secondary); white-space: nowrap; }
+            .app-main-nav .nav-link-title { white-space: nowrap; }
+            .app-user-nav .nav-link { max-width: 11rem; }
+            .app-user-nav .app-user-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             .card-title, .card-title a { overflow-wrap: anywhere; word-break: break-word; }
             .badge { white-space: normal; text-align: center; line-height: 1.2; }
             @media (min-width: 768px) {
@@ -80,46 +83,62 @@
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="collapse navbar-collapse" id="navbar-menu">
-                        <div class="navbar-nav">
+                        <div class="navbar-nav app-main-nav">
                             <a class="nav-link" href="{{ path('app_dashboard') }}">
                                 <span class="nav-link-icon ti ti-dashboard"></span>
-                                Dashboard
+                                <span class="nav-link-title">Dashboard</span>
                             </a>
-                            <a class="nav-link" href="{{ path('app_gym_equipment') }}">
-                                <span class="nav-link-icon ti ti-building-gym"></span>
-                                La mia palestra
-                            </a>
-                            <a class="nav-link" href="{{ path('app_equipment_index') }}">
-                                <span class="nav-link-icon ti ti-tools"></span>
-                                Attrezzature
-                            </a>
-                            <a class="nav-link" href="{{ path('app_exercise_index') }}">
-                                <span class="nav-link-icon ti ti-list-check"></span>
-                                Esercizi
-                            </a>
-                            <a class="nav-link" href="{{ path('app_workout_plan_index') }}">
-                                <span class="nav-link-icon ti ti-clipboard-list"></span>
-                                Schede
-                            </a>
-                            <a class="nav-link" href="{{ path('app_calibration_index') }}">
-                                <span class="nav-link-icon ti ti-adjustments"></span>
-                                Calibrazione
-                            </a>
-                            <a class="nav-link" href="{{ path('app_workout_session_index') }}">
-                                <span class="nav-link-icon ti ti-notebook"></span>
-                                Diario
-                            </a>
+                            <div class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#navbar-gym" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+                                    <span class="nav-link-icon ti ti-building-gym"></span>
+                                    <span class="nav-link-title">Palestra</span>
+                                </a>
+                                <div class="dropdown-menu" id="navbar-gym">
+                                    <a class="dropdown-item" href="{{ path('app_gym_equipment') }}">
+                                        <span class="ti ti-building-gym me-2"></span>
+                                        La mia palestra
+                                    </a>
+                                    <a class="dropdown-item" href="{{ path('app_equipment_index') }}">
+                                        <span class="ti ti-tools me-2"></span>
+                                        Attrezzature
+                                    </a>
+                                    <a class="dropdown-item" href="{{ path('app_exercise_index') }}">
+                                        <span class="ti ti-list-check me-2"></span>
+                                        Esercizi
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#navbar-training" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+                                    <span class="nav-link-icon ti ti-clipboard-list"></span>
+                                    <span class="nav-link-title">Allenamento</span>
+                                </a>
+                                <div class="dropdown-menu" id="navbar-training">
+                                    <a class="dropdown-item" href="{{ path('app_workout_plan_index') }}">
+                                        <span class="ti ti-clipboard-list me-2"></span>
+                                        Schede
+                                    </a>
+                                    <a class="dropdown-item" href="{{ path('app_calibration_index') }}">
+                                        <span class="ti ti-adjustments me-2"></span>
+                                        Calibrazione
+                                    </a>
+                                    <a class="dropdown-item" href="{{ path('app_workout_session_index') }}">
+                                        <span class="ti ti-notebook me-2"></span>
+                                        Diario
+                                    </a>
+                                </div>
+                            </div>
                             <a class="nav-link" href="{{ path('app_statistics_index') }}">
                                 <span class="nav-link-icon ti ti-chart-bar"></span>
-                                Statistiche
+                                <span class="nav-link-title">Statistiche</span>
                             </a>
                         </div>
                     </div>
-                    <div class="navbar-nav flex-row order-md-last">
+                    <div class="navbar-nav flex-row order-md-last app-user-nav">
                         <div class="nav-item">
                             <span class="nav-link text-secondary">
                                 <span class="ti ti-user me-1"></span>
-                                {{ currentUser.name|default('Utente demo') }}
+                                <span class="app-user-name">{{ currentUser.name|default('Utente demo') }}</span>
                             </span>
                         </div>
                     </div>

@@ -300,3 +300,9 @@ Non sono state aggiunte tabelle e non serve migration. La modifica resta un live
 Aggiunta l’aggregazione settimanale nello storico del singolo esercizio. Il nuovo servizio `ExerciseWeeklySummaryBuilder` riceve i riepiloghi per sessione già costruiti da `StatisticsController` e li raggruppa per settimana ISO, mantenendo le ultime settimane in ordine cronologico per la visualizzazione.
 
 La pagina `/statistics/exercises/{slug}` mostra ora due mini-grafici HTML/CSS per volume settimanale e miglior stimato settimanale, più card di dettaglio per settimana con sessioni, serie, volume, miglior peso, miglior stimato e RIR medio. Non sono state introdotte nuove tabelle o migration: tutti i dati sono derivati dal diario.
+
+## Step 33A - Navigazione principale compatta
+
+Riorganizzato il menu principale in `templates/base.html.twig` per evitare sovrapposizioni nella barra superiore. Le voci operative sono state raggruppate in due dropdown: `Palestra`, che contiene La mia palestra, Attrezzature ed Esercizi, e `Allenamento`, che contiene Schede, Calibrazione e Diario. Restano come link diretti Dashboard e Statistiche, perché sono aree di ingresso principali.
+
+Aggiunte piccole regole CSS nello stesso template per mantenere compatte le etichette del menu e troncare il nome utente quando lo spazio orizzontale è limitato. Nessuna modifica ai controller, alle rotte, al database o alla logica applicativa.

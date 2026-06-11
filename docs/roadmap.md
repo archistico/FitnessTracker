@@ -259,3 +259,7 @@ Aggiunta una metrica di forza stimata nelle statistiche, utile per confrontare s
 ## Step 32F - Aggregazione settimanale esercizio
 
 Lo storico del singolo esercizio ora include una lettura settimanale. Le ultime settimane con dati registrati vengono aggregate senza nuove tabelle: sessioni, serie, ripetizioni, volume, miglior peso, miglior stimato e RIR medio sono calcolati dai riepiloghi sessione già prodotti dalla pagina statistiche. Questo rende più leggibile la progressione quando le sessioni aumentano e prepara eventuali analisi mensili o confronto tra periodi.
+
+## Step 33A - Navigazione principale compatta
+
+Avviato un passaggio di consolidamento UI sulla navigazione. Il menu alto non mostra più tutte le sezioni come voci separate, perché l'applicazione sta crescendo e la barra orizzontale non è più adatta a ospitare ogni funzione. Le voci sono state raggruppate per area funzionale, mantenendo l'accesso rapido alle pagine principali senza introdurre una sidebar o cambiare architettura.

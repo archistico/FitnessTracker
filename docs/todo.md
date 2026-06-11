@@ -301,3 +301,9 @@ Nel diario allenamenti le etichette dei campi devono evitare abbreviazioni quand
 - Collegare aggregazione settimanale e miglior stimato all’aggiornamento assistito del profilo carichi.
 - Valutare confronto tra settimana corrente e settimana precedente direttamente nella UI.
 - Valutare una legenda o guida breve per spiegare differenza tra peso migliore, volume e miglior stimato.
+
+## Todo dopo Step 33A
+
+- Verificare visivamente il menu compatto su desktop, tablet e mobile.
+- Valutare stati attivi per evidenziare anche il gruppo aperto, ad esempio Palestra quando si è in Attrezzature o Esercizi.
+- Valutare in futuro una voce Profilo/Utente dedicata se l'area utente crescerà oltre il semplice nome demo.
