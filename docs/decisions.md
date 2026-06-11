@@ -187,3 +187,9 @@ Se il catalogo crescerà molto oltre questa scala, la stessa semantica dei filtr
 `La mia palestra` non deve essere un elenco parziale delle sole attrezzature già presenti nella tabella ponte. Deve invece mostrare tutte le attrezzature del catalogo e usare `GymEquipment.isAvailable` come stato di presenza/non presenza. Questa scelta evita ambiguità dopo import o seed del catalogo: se una nuova attrezzatura entra in `Equipment`, deve comparire nella configurazione palestra.
 
 I collegamenti mancanti vengono creati come presenti di default. È coerente con il flusso già indicato nella UI: l'utente parte dal catalogo completo e disattiva ciò che non esiste nella propria palestra. La sincronizzazione non richiede migration perché sfrutta la relazione esistente tra `GymProfile` ed `Equipment`.
+
+## Decisione Step 35D - disponibilità come filtro, non come blocco rigido
+
+La disponibilità dell'attrezzatura nella palestra deve guidare la selezione degli esercizi, ma non bloccarla in modo irreversibile. Nel dettaglio scheda il select parte filtrato sugli esercizi disponibili, perché è il comportamento più utile nella pratica quotidiana; tuttavia l'utente può visualizzare anche esercizi non disponibili, ad esempio per preparare una scheda destinata a un'altra palestra o per pianificare attrezzature future.
+
+Il filtro è applicato a livello UI e deriva dalla stessa matrice `GymEquipment` usata in `La mia palestra`. Non viene introdotto un vincolo database tra schede ed esercizi disponibili, perché le schede storiche devono restare leggibili anche se una macchina viene disattivata in seguito.

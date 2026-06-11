@@ -343,3 +343,10 @@ Nel diario allenamenti le etichette dei campi devono evitare abbreviazioni quand
 - Aggiungere filtri/ricerca anche in `La mia palestra`, almeno per testo, tipo, presente/non presente e macchina/attrezzo.
 - Valutare azioni rapide di massa: segna tutto presente, segna tutto non presente, mostra solo non presenti.
 - Verificare che il filtro `solo disponibili nella mia palestra` negli esercizi rifletta correttamente le attrezzature disattivate.
+
+## Todo dopo Step 35D
+
+- Verificare visivamente il pannello `Aggiungi esercizio` con molte opzioni, soprattutto su smartphone.
+- Valutare se aggiungere un avviso non bloccante quando si inserisce in scheda un esercizio marcato come non disponibile.
+- Valutare lo stesso filtro `solo disponibili` anche nella calibrazione, perché il catalogo esteso può rendere lunga la scelta esercizio.
+- Aggiungere filtri/ricerca nella pagina `La mia palestra`, come previsto dopo lo Step 35C.

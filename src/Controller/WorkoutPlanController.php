@@ -9,6 +9,8 @@ use App\Enum\ExerciseTrackingMode;
 use App\Enum\ProgressionType;
 use App\Enum\WorkoutGoal;
 use App\Service\CurrentUserProvider;
+use App\Service\GymEquipmentCatalogSynchronizer;
+use App\Service\GymProfileProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -160,17 +162,33 @@ final class WorkoutPlanController extends AbstractController
     }
 
     #[Route('/{slug}', name: 'app_workout_plan_show', methods: ['GET'])]
-    public function show(string $slug, EntityManagerInterface $entityManager, CurrentUserProvider $currentUserProvider): Response
-    {
+    public function show(
+        string $slug,
+        EntityManagerInterface $entityManager,
+        CurrentUserProvider $currentUserProvider,
+        GymProfileProvider $gymProfileProvider,
+        GymEquipmentCatalogSynchronizer $gymEquipmentCatalogSynchronizer,
+    ): Response {
         $plan = $this->findPlan($entityManager, $currentUserProvider, $slug);
 
         /** @var list<Exercise> $exercises */
         $exercises = $entityManager->getRepository(Exercise::class)->findBy([], ['name' => 'ASC']);
+        $availableEquipmentSlugs = $this->getAvailableEquipmentSlugs($gymProfileProvider, $gymEquipmentCatalogSynchronizer);
+        $availableExerciseCount = count(array_filter(
+            $exercises,
+            static function (Exercise $exercise) use ($availableEquipmentSlugs): bool {
+                $equipment = $exercise->getDefaultEquipment();
+
+                return $equipment === null || in_array($equipment->getSlug(), $availableEquipmentSlugs, true);
+            }
+        ));
 
         return $this->render('workout_plan/show.html.twig', [
             'currentUser' => $currentUserProvider->getUser(),
             'plan' => $plan,
             'exercises' => $exercises,
+            'availableEquipmentSlugs' => $availableEquipmentSlugs,
+            'availableExerciseCount' => $availableExerciseCount,
             'progressionTypes' => ProgressionType::cases(),
         ]);
     }
@@ -455,6 +473,23 @@ final class WorkoutPlanController extends AbstractController
             ->setPlannedDurationSeconds($this->nullablePositiveInt($request->request->get('plannedDurationSeconds')))
             ->setPlannedRestSeconds($this->nullablePositiveInt($request->request->get('plannedRestSeconds')))
             ->setNotes($request->request->get('notes') !== null ? (string) $request->request->get('notes') : null);
+    }
+
+    /** @return list<string> */
+    private function getAvailableEquipmentSlugs(
+        GymProfileProvider $gymProfileProvider,
+        GymEquipmentCatalogSynchronizer $gymEquipmentCatalogSynchronizer,
+    ): array {
+        $items = $gymEquipmentCatalogSynchronizer->synchronizeAndReturnItems($gymProfileProvider->getCurrentGym());
+        $slugs = [];
+
+        foreach ($items as $item) {
+            if ($item->isAvailable()) {
+                $slugs[] = $item->getEquipment()->getSlug();
+            }
+        }
+
+        return $slugs;
     }
 
     private function findPlan(EntityManagerInterface $entityManager, CurrentUserProvider $currentUserProvider, string $slug): WorkoutPlan

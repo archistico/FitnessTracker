@@ -289,3 +289,7 @@ Il prossimo passo potrà essere la gestione più comoda della disponibilità att
 Corretto il primo problema emerso con il catalogo esteso: `La mia palestra` deve rappresentare la disponibilità di tutte le attrezzature del catalogo, non solo delle righe già collegate al profilo. La pagina ora si auto-allinea al catalogo e il comando di seed aggiorna anche i collegamenti mancanti, rendendo coerenti catalogo, disponibilità attrezzature e filtri degli esercizi disponibili.
 
 Il prossimo miglioramento naturale potrà essere l'aggiunta di filtri anche dentro `La mia palestra`, perché con l'intero catalogo visibile la pagina diventa corretta ma lunga.
+
+## Step 35D - Esercizi disponibili nelle schede
+
+Completato. La configurazione dell'attrezzatura presente/non presente ora influenza anche il pannello di aggiunta esercizio nelle schede. La vista resta permissiva: per impostazione predefinita mostra solo esercizi disponibili, ma l'utente può togliere il filtro e vedere l'intero catalogo, inclusi gli esercizi legati ad attrezzature non presenti.

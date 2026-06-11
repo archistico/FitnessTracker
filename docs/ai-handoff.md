@@ -342,3 +342,9 @@ Corretto il comportamento della pagina `La mia palestra`. Dopo l'estensione del 
 Aggiunto `GymEquipmentCatalogSynchronizer`, servizio che garantisce una riga `GymEquipment` per ogni `Equipment` del catalogo e per ogni palestra interessata. La pagina `/gym/equipment` ora chiama il servizio prima del render e mostra sempre tutto il catalogo, creando come presenti di default eventuali collegamenti mancanti; l'utente può poi segnare come non presenti gli attrezzi che non possiede. Il comando `app:catalog:seed` sincronizza anche i collegamenti palestra-attrezzatura per i profili palestra già esistenti, così un database popolato viene aggiornato in modo coerente senza cancellare dati.
 
 La UI della pagina ora usa la terminologia `presente` / `non presente` e mostra conteggi totali, presenti e non presenti. Non sono state aggiunte tabelle o migration: la correzione usa la tabella ponte esistente `GymEquipment`.
+
+## Step 35D - Esercizi disponibili nelle schede
+
+Collegata la configurazione `La mia palestra` anche alla scelta esercizio nel dettaglio scheda. `WorkoutPlanController::show()` ora sincronizza la matrice attrezzature della palestra corrente e passa al template gli slug disponibili e il conteggio degli esercizi realmente utilizzabili. Nel pannello `Aggiungi esercizio` il select mostra di default solo gli esercizi disponibili nella palestra, con checkbox per visualizzare anche quelli non disponibili. Le opzioni riportano anche l'attrezzatura principale e l'eventuale stato `non disponibile`, così l'utente capisce perché un esercizio è nascosto o sconsigliato.
+
+Anche `ExerciseController` usa la sincronizzazione prima di calcolare le attrezzature disponibili, così il filtro `Solo disponibili nella mia palestra` non dipende più dall'aver aperto prima la pagina `La mia palestra`. Nessuna migration: la logica usa `GymEquipmentCatalogSynchronizer` e la relazione esistente tra palestra e attrezzature.

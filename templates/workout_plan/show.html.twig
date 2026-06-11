@@ -147,7 +147,7 @@
                     <div class="app-card-number"><span class="ti ti-plus"></span></div>
                     <div>
                         <h3 class="card-title mb-1">Aggiungi esercizio</h3>
-                        <div class="text-secondary small">Tutti i campi restano visibili e grandi.</div>
+                        <div class="text-secondary small">{{ availableExerciseCount }} disponibili su {{ exercises|length }} esercizi.</div>
                     </div>
                 </div>
             </div>
@@ -160,12 +160,24 @@
                         <div class="app-info-help">Filtra l'elenco sotto senza ricaricare la pagina. Utile con cataloghi grandi.</div>
                     </div>
                     <div class="mb-3">
+                        <label class="form-check">
+                            <input class="form-check-input" type="checkbox" id="availableExercisesOnly" data-exercise-available-toggle="#exerciseId" checked>
+                            <span class="form-check-label">Mostra solo esercizi disponibili nella mia palestra</span>
+                        </label>
+                        <div class="app-info-help">Gli esercizi con attrezzatura disattivata restano consultabili togliendo la spunta.</div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label" for="exerciseId">Esercizio</label>
                         <select class="form-select app-touch-control" id="exerciseId" name="exerciseId" required>
+                            <option value="" data-search="" data-available="1">Seleziona esercizio...</option>
                             {% for exercise in exercises %}
                                 {% set equipment = exercise.defaultEquipment %}
-                                {% set searchText = exercise.name ~ ' ' ~ exercise.trackingMode.label ~ ' ' ~ exercise.description ~ ' ' ~ exercise.primaryMuscles|join(' ') ~ ' ' ~ exercise.secondaryMuscles|join(' ') ~ ' ' ~ (equipment ? equipment.name : '') %}
-                                <option value="{{ exercise.id }}" data-search="{{ searchText|lower }}">{{ exercise.name }} · {{ exercise.trackingMode.label }}</option>
+                                {% set isAvailable = equipment is null or equipment.slug in availableEquipmentSlugs %}
+                                {% set availabilityLabel = isAvailable ? 'disponibile' : 'non disponibile' %}
+                                {% set searchText = exercise.name ~ ' ' ~ exercise.trackingMode.label ~ ' ' ~ exercise.description ~ ' ' ~ exercise.primaryMuscles|join(' ') ~ ' ' ~ exercise.secondaryMuscles|join(' ') ~ ' ' ~ (equipment ? equipment.name : '') ~ ' ' ~ availabilityLabel %}
+                                <option value="{{ exercise.id }}" data-search="{{ searchText|lower }}" data-available="{{ isAvailable ? '1' : '0' }}">
+                                    {{ exercise.name }} · {{ exercise.trackingMode.label }}{% if equipment %} · {{ equipment.name }}{% endif %}{% if not isAvailable %} · non disponibile{% endif %}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -257,31 +269,44 @@
                     return;
                 }
 
+                const availabilityToggle = document.querySelector('[data-exercise-available-toggle="' + input.dataset.exerciseSelectFilter + '"]');
                 const options = Array.from(select.options).map(function (option) {
                     return {
                         element: option,
                         text: (option.dataset.search || option.textContent || '').toLowerCase(),
+                        available: option.dataset.available !== '0',
                     };
                 });
 
-                input.addEventListener('input', function () {
+                const applyFilter = function () {
                     const query = input.value.trim().toLowerCase();
+                    const availableOnly = availabilityToggle ? availabilityToggle.checked : false;
                     let firstVisible = null;
 
                     options.forEach(function (item) {
-                        const visible = query === '' || item.text.includes(query);
-                        item.element.hidden = !visible;
-                        item.element.disabled = !visible;
+                        const isPlaceholder = item.element.value === '';
+                        const matchesQuery = query === '' || item.text.includes(query);
+                        const matchesAvailability = isPlaceholder || !availableOnly || item.available;
+                        const visible = matchesQuery && matchesAvailability;
 
-                        if (visible && firstVisible === null) {
+                        item.element.hidden = !visible;
+                        item.element.disabled = !visible || isPlaceholder;
+
+                        if (!isPlaceholder && visible && firstVisible === null) {
                             firstVisible = item.element;
                         }
                     });
 
-                    if (select.selectedOptions.length === 0 || select.selectedOptions[0].disabled) {
+                    if (select.selectedOptions.length === 0 || select.selectedOptions[0].disabled || select.selectedOptions[0].hidden) {
                         select.value = firstVisible ? firstVisible.value : '';
                     }
-                });
+                };
+
+                input.addEventListener('input', applyFilter);
+                if (availabilityToggle) {
+                    availabilityToggle.addEventListener('change', applyFilter);
+                }
+                applyFilter();
             });
         });
     </script>

@@ -4,11 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Equipment;
 use App\Entity\Exercise;
-use App\Entity\GymEquipment;
 use App\Enum\ExerciseTrackingMode;
 use App\Enum\ExerciseType;
 use App\Service\CatalogListFilter;
 use App\Service\CurrentUserProvider;
+use App\Service\GymEquipmentCatalogSynchronizer;
 use App\Service\GymProfileProvider;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,6 +28,7 @@ final class ExerciseController extends AbstractController
         EntityManagerInterface $entityManager,
         CurrentUserProvider $currentUserProvider,
         GymProfileProvider $gymProfileProvider,
+        GymEquipmentCatalogSynchronizer $gymEquipmentCatalogSynchronizer,
         CatalogListFilter $catalogListFilter,
     ): Response {
         /** @var list<Exercise> $exercises */
@@ -36,7 +37,7 @@ final class ExerciseController extends AbstractController
         $equipmentList = $entityManager->getRepository(Equipment::class)->findBy([], ['name' => 'ASC']);
         $filters = $this->buildExerciseFilters($request);
 
-        $availableEquipmentSlugs = $this->getAvailableEquipmentSlugs($entityManager, $gymProfileProvider);
+        $availableEquipmentSlugs = $this->getAvailableEquipmentSlugs($gymProfileProvider, $gymEquipmentCatalogSynchronizer);
         $filteredExercises = $catalogListFilter->filterExercises($exercises, $availableEquipmentSlugs, $filters);
 
         return $this->render('exercise/index.html.twig', [
@@ -146,10 +147,11 @@ final class ExerciseController extends AbstractController
         EntityManagerInterface $entityManager,
         CurrentUserProvider $currentUserProvider,
         GymProfileProvider $gymProfileProvider,
+        GymEquipmentCatalogSynchronizer $gymEquipmentCatalogSynchronizer,
     ): Response {
         $exercise = $this->findExerciseBySlug($entityManager, $slug);
 
-        $availableEquipmentSlugs = $this->getAvailableEquipmentSlugs($entityManager, $gymProfileProvider);
+        $availableEquipmentSlugs = $this->getAvailableEquipmentSlugs($gymProfileProvider, $gymEquipmentCatalogSynchronizer);
         $equipment = $exercise->getDefaultEquipment();
         $isAvailable = $equipment === null || in_array($equipment->getSlug(), $availableEquipmentSlugs, true);
 
@@ -295,16 +297,15 @@ final class ExerciseController extends AbstractController
     }
 
     /** @return list<string> */
-    private function getAvailableEquipmentSlugs(EntityManagerInterface $entityManager, GymProfileProvider $gymProfileProvider): array
-    {
-        $items = $entityManager->getRepository(GymEquipment::class)->findBy([
-            'gymProfile' => $gymProfileProvider->getCurrentGym(),
-            'isAvailable' => true,
-        ]);
-
+    private function getAvailableEquipmentSlugs(
+        GymProfileProvider $gymProfileProvider,
+        GymEquipmentCatalogSynchronizer $gymEquipmentCatalogSynchronizer,
+    ): array {
+        $items = $gymEquipmentCatalogSynchronizer->synchronizeAndReturnItems($gymProfileProvider->getCurrentGym());
         $slugs = [];
+
         foreach ($items as $item) {
-            if ($item instanceof GymEquipment) {
+            if ($item->isAvailable()) {
                 $slugs[] = $item->getEquipment()->getSlug();
             }
         }
