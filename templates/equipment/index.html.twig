@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Attrezzature · FitnessTracker{% endblock %}
+{% block page_title %}Attrezzature{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary mt-1">Archivio generale delle macchine, attrezzi e categorie utilizzabili negli esercizi.</div>
+{% endblock %}
+{% block page_actions %}
+    <a href="{{ path('app_equipment_new') }}" class="btn btn-primary">
+        <span class="ti ti-plus me-1"></span>
+        Nuova attrezzatura
+    </a>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards">
+    {% for equipment in equipmentList %}
+        <div class="col-md-6">
+            <div class="app-mobile-card">
+                <div class="app-mobile-card-header">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="app-card-number"><span class="ti ti-tools"></span></div>
+                        <div>
+                            <h3 class="card-title mb-1">
+                                <a href="{{ path('app_equipment_show', {slug: equipment.slug}) }}">{{ equipment.name }}</a>
+                            </h3>
+                            <div class="text-secondary small">{{ equipment.type.value }}</div>
+                        </div>
+                    </div>
+                    {% if equipment.machine %}
+                        <span class="badge bg-blue-lt">macchina</span>
+                    {% else %}
+                        <span class="badge bg-secondary-lt">attrezzo</span>
+                    {% endif %}
+                </div>
+                <div class="app-mobile-card-body">
+                    <p class="app-description text-secondary mb-0">{{ equipment.description }}</p>
+                </div>
+                <div class="app-mobile-card-footer app-action-grid">
+                    <a class="btn btn-outline-primary" href="{{ path('app_equipment_show', {slug: equipment.slug}) }}">Apri scheda</a>
+                    <a class="btn btn-outline-secondary" href="{{ path('app_equipment_edit', {slug: equipment.slug}) }}">Modifica</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="empty">
+                <p class="empty-title">Nessuna attrezzatura caricata</p>
+                <p class="empty-subtitle text-secondary">Esegui le fixture per caricare il catalogo iniziale.</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Schede allenamento · FitnessTracker{% endblock %}
+{% block page_title %}Schede allenamento{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary">Crea e gestisci schede riutilizzabili: gambe, dorso, full body, giorni della settimana e progressioni specifiche.</div>
+{% endblock %}
+{% block page_actions %}
+    <a href="{{ path('app_workout_plan_new') }}" class="btn btn-primary">
+        <span class="ti ti-plus me-1"></span>
+        Nuova scheda
+    </a>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards">
+    {% for plan in plans %}
+        <div class="col-md-6">
+            <div class="app-mobile-card">
+                <div class="app-mobile-card-header">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="app-card-number"><span class="ti ti-clipboard-list"></span></div>
+                        <div>
+                            <h3 class="card-title mb-1">
+                                <a href="{{ path('app_workout_plan_show', { slug: plan.slug }) }}">{{ plan.name }}</a>
+                            </h3>
+                            <div class="text-secondary small">{{ plan.goal.label }} · {{ plan.suggestedDayLabel }}</div>
+                        </div>
+                    </div>
+                    {% if plan.active %}
+                        <span class="badge bg-success-lt">Attiva</span>
+                    {% else %}
+                        <span class="badge bg-secondary-lt">Disattivata</span>
+                    {% endif %}
+                </div>
+                <div class="app-mobile-card-body">
+                    <div class="app-info-grid">
+                        <div class="app-info-item">
+                            <div class="app-info-label">Esercizi</div>
+                            <div class="app-info-value">{{ plan.exercises|length }}</div>
+                        </div>
+                        <div class="app-info-item">
+                            <div class="app-info-label">Obiettivo</div>
+                            <div class="app-info-value">{{ plan.goal.label }}</div>
+                        </div>
+                        <div class="app-info-item">
+                            <div class="app-info-label">Giorno</div>
+                            <div class="app-info-value">{{ plan.suggestedDayLabel }}</div>
+                        </div>
+                    </div>
+                    {% if plan.description %}
+                        <div class="app-section">
+                            <div class="app-section-title">Note scheda</div>
+                            <p class="app-description text-secondary mb-0">{{ plan.description }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="app-mobile-card-footer app-action-grid">
+                    <a class="btn btn-outline-primary" href="{{ path('app_workout_plan_show', { slug: plan.slug }) }}">Apri scheda</a>
+                    <a class="btn btn-outline-secondary" href="{{ path('app_workout_plan_edit', { slug: plan.slug }) }}">Modifica</a>
+                    <form method="post" action="{{ path('app_workout_plan_duplicate', { slug: plan.slug }) }}" class="app-mobile-full">
+                        <input type="hidden" name="_token" value="{{ csrf_token('duplicate_workout_plan_' ~ plan.id) }}">
+                        <button class="btn btn-outline-primary w-100" type="submit">Duplica</button>
+                    </form>
+                    <form method="post" action="{{ path('app_workout_plan_toggle_active', { slug: plan.slug }) }}" class="app-mobile-full">
+                        <button class="btn btn-outline-secondary w-100" type="submit">
+                            {{ plan.active ? 'Disattiva' : 'Attiva' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="empty">
+                <div class="empty-icon"><span class="ti ti-clipboard-list"></span></div>
+                <p class="empty-title">Nessuna scheda creata</p>
+                <p class="empty-subtitle text-secondary">Crea la prima scheda, poi aggiungi esercizi con serie, reps, durata o progressione Trenino.</p>
+                <div class="empty-action">
+                    <a href="{{ path('app_workout_plan_new') }}" class="btn btn-primary">Crea scheda</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

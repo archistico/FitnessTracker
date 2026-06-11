@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ exercise.name }} · FitnessTracker{% endblock %}
+{% block page_title %}{{ exercise.name }}{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary mt-1">Scheda esercizio.</div>
+{% endblock %}
+{% block page_actions %}
+    <div class="btn-list">
+        <a href="{{ path('app_exercise_index') }}" class="btn btn-outline-secondary">
+            <span class="ti ti-arrow-left me-1"></span>
+            Esercizi
+        </a>
+        <a href="{{ path('app_exercise_edit', { slug: exercise.slug }) }}" class="btn btn-primary">
+            <span class="ti ti-pencil me-1"></span>
+            Modifica
+        </a>
+    </div>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards">
+    <div class="col-lg-8">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-activity"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Descrizione ed esecuzione</h3>
+                        <div class="text-secondary small">Cosa allena e come registrarlo nel diario.</div>
+                    </div>
+                </div>
+                {% if isAvailable %}<span class="badge bg-green-lt">disponibile</span>{% else %}<span class="badge bg-red-lt">non disponibile</span>{% endif %}
+            </div>
+            <div class="app-mobile-card-body">
+                <div class="app-section">
+                    <div class="app-section-title">Descrizione</div>
+                    <p class="app-description mb-0">{{ exercise.description }}</p>
+                </div>
+                {% if exercise.executionInstructions %}
+                    <div class="app-section">
+                        <div class="app-section-title">Come si esegue</div>
+                        <p class="app-description mb-0">{{ exercise.executionInstructions }}</p>
+                    </div>
+                {% endif %}
+                {% if exercise.secondaryEquipmentNotes %}
+                    <div class="app-section">
+                        <div class="app-section-title">Note attrezzatura</div>
+                        <p class="app-description text-secondary mb-0">{{ exercise.secondaryEquipmentNotes }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-info-circle"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Dati esercizio</h3>
+                        <div class="text-secondary small">Informazioni usate da schede e diario.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <div class="app-info-grid">
+                    <div class="app-info-item">
+                        <div class="app-info-label">Attrezzatura</div>
+                        <div class="app-info-value">
+                            {% if exercise.defaultEquipment %}
+                                <a href="{{ path('app_equipment_show', {slug: exercise.defaultEquipment.slug}) }}">{{ exercise.defaultEquipment.name }}</a>
+                            {% else %}
+                                Nessuna
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="app-info-label">Tracking</div>
+                        <div class="app-info-value">{{ exercise.trackingMode.label }}</div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="app-info-label">Incremento</div>
+                        <div class="app-info-value">{{ exercise.defaultIncrementKg }} kg</div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="app-info-label">Tipo</div>
+                        <div class="app-info-value">{{ exercise.exerciseType.value }}</div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="app-info-label">Fondamentale</div>
+                        <div class="app-info-value">{{ exercise.fundamental ? 'Sì' : 'No' }}</div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="app-info-label">Disponibilità</div>
+                        <div class="app-info-value">{{ isAvailable ? 'Sì' : 'No' }}</div>
+                    </div>
+                </div>
+
+                {% if exercise.primaryMuscles is not empty %}
+                    <div class="app-section">
+                        <div class="app-section-title">Muscoli principali</div>
+                        <div class="badges-list">
+                            {% for muscle in exercise.primaryMuscles %}
+                                <span class="badge bg-green-lt">{{ muscle }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if exercise.secondaryMuscles is not empty %}
+                    <div class="app-section">
+                        <div class="app-section-title">Muscoli secondari</div>
+                        <div class="badges-list">
+                            {% for muscle in exercise.secondaryMuscles %}
+                                <span class="badge bg-blue-lt">{{ muscle }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="app-mobile-card-footer app-action-grid">
+                <a href="{{ path('app_exercise_edit', { slug: exercise.slug }) }}" class="btn btn-outline-primary">Modifica</a>
+                <form class="app-danger-action" method="post" action="{{ path('app_exercise_delete', { slug: exercise.slug }) }}" data-confirm-title="Elimina esercizio" data-confirm-message="Eliminare definitivamente l’esercizio &quot;{{ exercise.name }}&quot;?" data-confirm-submit-label="Elimina">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_exercise_' ~ exercise.id) }}">
+                    <button class="btn btn-outline-danger w-100" type="submit">Elimina</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

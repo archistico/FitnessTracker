@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifica sessione diario · FitnessTracker{% endblock %}
+{% block page_title %}Modifica sessione diario{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary mt-1">
+        {{ session.workoutPlan ? session.workoutPlan.name : 'Allenamento libero' }} · {{ session.sessionType.label }}
+    </div>
+{% endblock %}
+{% block page_actions %}
+    <div class="btn-list">
+        <a href="{{ path('app_workout_session_show', { id: session.id }) }}" class="btn btn-outline-primary">Apri allenamento</a>
+        <a href="{{ path('app_workout_session_index') }}" class="btn btn-outline-secondary">Diario</a>
+    </div>
+{% endblock %}
+
+{% block body %}
+{% set formErrors = formErrors|default({}) %}
+{% set formData = formData|default({}) %}
+<div class="row row-cards">
+    <div class="col-lg-8">
+        <form method="post" class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-notebook"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Dati sessione</h3>
+                        <div class="text-secondary small">Modifica data, orari, stato e note generali.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <div class="app-section">
+                    <div class="app-section-title">Tempi</div>
+                    <div class="app-field-grid">
+                        <div>
+                            <label class="form-label" for="sessionDate">Data allenamento</label>
+                            <input class="form-control {{ formErrors.sessionDate is defined ? 'is-invalid' : '' }}" id="sessionDate" name="sessionDate" type="date" required value="{{ formData.sessionDate|default(session.sessionDate|date('Y-m-d')) }}">
+                            {% if formErrors.sessionDate is defined %}<div class="invalid-feedback d-block">{{ formErrors.sessionDate }}</div>{% endif %}
+                        </div>
+                        <div>
+                            <label class="form-label" for="startedAt">Inizio</label>
+                            <input class="form-control {{ formErrors.startedAt is defined ? 'is-invalid' : '' }}" id="startedAt" name="startedAt" type="datetime-local" required value="{{ formData.startedAt|default(session.startedAt|date('Y-m-d\\TH:i')) }}">
+                            {% if formErrors.startedAt is defined %}<div class="invalid-feedback d-block">{{ formErrors.startedAt }}</div>{% endif %}
+                        </div>
+                        <div>
+                            <label class="form-label" for="endedAt">Fine</label>
+                            <input class="form-control {{ formErrors.endedAt is defined ? 'is-invalid' : '' }}" id="endedAt" name="endedAt" type="datetime-local" value="{{ formData.endedAt|default(session.endedAt ? session.endedAt|date('Y-m-d\\TH:i') : '') }}">
+                            {% if formErrors.endedAt is defined %}<div class="invalid-feedback d-block">{{ formErrors.endedAt }}</div>{% endif %}
+                            <div class="app-info-help">Lascia vuoto se l’allenamento è ancora in corso.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-section">
+                    <div class="app-section-title">Stato</div>
+                    <div class="app-field-grid">
+                        <div>
+                            <label class="form-label" for="status">Stato sessione</label>
+                            <select class="form-select {{ formErrors.status is defined ? 'is-invalid' : '' }}" id="status" name="status" required>
+                                {% for status in statuses %}
+                                    <option value="{{ status.value }}" {% if formData.status|default(session.status.value) == status.value %}selected{% endif %}>{{ status.label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if formErrors.status is defined %}<div class="invalid-feedback d-block">{{ formErrors.status }}</div>{% endif %}
+                        </div>
+                        <div>
+                            <div class="form-label">Tipo</div>
+                            <div class="form-control-plaintext">{{ session.sessionType.label }}</div>
+                            <div class="app-info-help">Il tipo non viene cambiato da questa schermata per non alterare calibrazioni e allenamenti.</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Scheda origine</div>
+                            <div class="form-control-plaintext">{{ session.workoutPlan ? session.workoutPlan.name : 'Nessuna' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-section">
+                    <label class="form-label" for="notes">Note sessione</label>
+                    <textarea class="form-control app-touch-control" id="notes" name="notes" rows="5" placeholder="Note generali dell'allenamento, energia, dolore, contesto...">{{ formData.notes|default(session.notes) }}</textarea>
+                </div>
+            </div>
+            <div class="app-mobile-card-footer app-action-grid">
+                <button class="btn btn-primary" type="submit">
+                    <span class="ti ti-device-floppy me-1"></span>
+                    Salva modifiche
+                </button>
+                <a href="{{ path('app_workout_session_show', { id: session.id }) }}" class="btn btn-outline-secondary">Annulla</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-alert-triangle"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Eliminazione</h3>
+                        <div class="text-secondary small">Utile per sessioni di test o create per errore.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <p class="app-description text-secondary mb-0">
+                    Eliminare una sessione rimuove anche esercizi e serie registrate dentro quella sessione. Le schede e gli esercizi di catalogo non vengono eliminati.
+                </p>
+            </div>
+            <div class="app-mobile-card-footer app-action-grid">
+                <form class="app-danger-action" method="post" action="{{ path('app_workout_session_delete', { id: session.id }) }}" data-confirm-title="Elimina sessione" data-confirm-message="Eliminare definitivamente la sessione del {{ session.sessionDate|date('d/m/Y') }}{% if session.workoutPlan %} - {{ session.workoutPlan.name }}{% endif %}? Verranno rimosse anche serie ed esercizi registrati in questa sessione." data-confirm-submit-label="Elimina">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_workout_session_' ~ session.id) }}">
+                    <button class="btn btn-outline-danger w-100" type="submit">Elimina sessione</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

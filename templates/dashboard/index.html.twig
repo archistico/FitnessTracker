@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard · FitnessTracker{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary mt-1">Vista rapida su palestra, schede e diario allenamenti.</div>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards">
+    <div class="col-6 col-lg-3 col-xl">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">Attrezzature</div>
+                <div class="h2 mb-2">{{ equipmentCount }}</div>
+                <div class="text-secondary small">Catalogo generale.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 col-xl">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">Palestra</div>
+                <div class="h2 mb-2">{{ availableEquipmentCount }}</div>
+                <div class="text-secondary small">Strumenti disponibili.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 col-xl">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">Esercizi</div>
+                <div class="h2 mb-2">{{ exerciseCount }}</div>
+                <div class="text-secondary small">Movimenti tracciabili.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 col-xl">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">Schede</div>
+                <div class="h2 mb-2">{{ workoutPlanCount }}</div>
+                <div class="text-secondary small">Programmi creati.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 col-xl">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">Diario</div>
+                <div class="h2 mb-2">{{ workoutSessionCount }}</div>
+                <div class="text-secondary small">Sessioni registrate.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 col-xl">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">Calibrazioni</div>
+                <div class="h2 mb-2">{{ loadProfileCount }}</div>
+                <div class="text-secondary small">Profili carico salvati.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row row-cards mt-1">
+    <div class="col-lg-7">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-route"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Percorso di sviluppo</h3>
+                        <div class="text-secondary small">La priorità resta inserire dati chiari e affidabili da smartphone.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <div class="app-info-grid">
+                    <div class="app-info-item">
+                        <div class="app-info-label">Fatto</div>
+                        <div class="app-info-value">Archivio</div>
+                        <div class="app-info-help">Attrezzature, esercizi e disponibilità palestra.</div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="app-info-label">Fatto</div>
+                        <div class="app-info-value">Schede</div>
+                        <div class="app-info-help">Schede riutilizzabili con esercizi e prescrizioni.</div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="app-info-label">Fatto</div>
+                        <div class="app-info-value">Diario</div>
+                        <div class="app-info-help">Serie reali, RIR, carico, sforzo e note.</div>
+                    </div>
+                </div>
+                <div class="app-section">
+                    <div class="app-section-title">Prossimi blocchi</div>
+                    <div class="list-group list-group-flush border rounded">
+                        <div class="list-group-item">Calibrazione iniziale come allenamento dedicato: disponibile.</div>
+                        <div class="list-group-item">Progressione Trenino Invictus con carichi suggeriti.</div>
+                        <div class="list-group-item">Statistiche e consigli spiegabili basati sul diario.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-bolt"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Azioni rapide</h3>
+                        <div class="text-secondary small">Pulsanti grandi, adatti anche da telefono.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <div class="app-action-grid d-grid">
+                    <a class="btn btn-primary" href="{{ path('app_workout_plan_new') }}">Crea una scheda</a>
+                    <a class="btn btn-outline-primary" href="{{ path('app_workout_plan_index') }}">Apri schede</a>
+                    <a class="btn btn-outline-primary" href="{{ path('app_workout_session_index') }}">Apri diario</a>
+                    <a class="btn btn-outline-primary" href="{{ path('app_calibration_index') }}">Calibra carichi</a>
+                    <a class="btn btn-outline-secondary" href="{{ path('app_gym_equipment') }}">Configura palestra</a>
+                    <a class="btn btn-outline-secondary" href="{{ path('app_exercise_index', { available: 1 }) }}">Esercizi disponibili</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

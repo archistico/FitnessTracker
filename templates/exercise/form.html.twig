@@ -1,0 +1,174 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mode == 'new' ? 'Nuovo esercizio' : 'Modifica esercizio' }} · FitnessTracker{% endblock %}
+{% block page_title %}{{ mode == 'new' ? 'Nuovo esercizio' : 'Modifica esercizio' }}{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary mt-1">
+        Gestione esercizi usati da schede, diario, calibrazione e progressioni.
+    </div>
+{% endblock %}
+{% block page_actions %}
+    <div class="btn-list">
+        <a href="{{ path('app_exercise_index') }}" class="btn btn-outline-secondary">
+            <span class="ti ti-arrow-left me-1"></span>
+            Esercizi
+        </a>
+        {% if mode == 'edit' %}
+            <a href="{{ path('app_exercise_show', { slug: exercise.slug }) }}" class="btn btn-outline-primary">
+                Apri esercizio
+            </a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block body %}
+{% set formErrors = formErrors|default({}) %}
+{% set formData = formData|default({}) %}
+{% set formSubmitted = formSubmitted|default(false) %}
+<div class="row row-cards">
+    <div class="col-lg-8">
+        <form method="post" class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-activity"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Dati esercizio</h3>
+                        <div class="text-secondary small">Nome, descrizione, tracking e tipo sono obbligatori.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-mobile-card-body">
+                <div class="app-field-grid">
+                    <div>
+                        <label class="form-label" for="exercise-name">Nome</label>
+                        <input class="form-control {{ formErrors.name is defined ? 'is-invalid' : '' }}" id="exercise-name" name="name" type="text" data-slug-source="#exercise-slug" required value="{{ formData.name|default(exercise.name) }}" placeholder="es. Leg extension">
+                        {% if formErrors.name is defined %}<div class="invalid-feedback d-block">{{ formErrors.name }}</div>{% endif %}
+                    </div>
+                    <div>
+                        <label class="form-label" for="exercise-slug">Slug</label>
+                        <input class="form-control {{ formErrors.slug is defined ? 'is-invalid' : '' }}" id="exercise-slug" name="slug" type="text" value="{{ formData.slug|default(exercise.slug) }}" placeholder="automatico se vuoto">
+                        {% if formErrors.slug is defined %}<div class="invalid-feedback d-block">{{ formErrors.slug }}</div>{% endif %}
+                        <div class="app-info-help">Usato negli URL. Se resta vuoto viene compilato automaticamente dal nome; se lo modifichi a mano non viene più sovrascritto.</div>
+                    </div>
+                    <div>
+                        <label class="form-label" for="exercise-equipment">Attrezzatura principale</label>
+                        <select class="form-select {{ formErrors.defaultEquipment is defined ? 'is-invalid' : '' }}" id="exercise-equipment" name="defaultEquipment">
+                            <option value="">Nessuna / corpo libero</option>
+                            {% for equipment in equipmentList %}
+                                <option value="{{ equipment.id }}" {% if formData.defaultEquipment|default(exercise.defaultEquipment ? exercise.defaultEquipment.id : '') == equipment.id %}selected{% endif %}>
+                                    {{ equipment.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if formErrors.defaultEquipment is defined %}<div class="invalid-feedback d-block">{{ formErrors.defaultEquipment }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="app-section">
+                    <div class="app-field-grid">
+                        <div>
+                            <label class="form-label" for="exercise-tracking">Modalità di registrazione</label>
+                            <select class="form-select {{ formErrors.trackingMode is defined ? 'is-invalid' : '' }}" id="exercise-tracking" name="trackingMode" required>
+                                {% for trackingMode in trackingModes %}
+                                    <option value="{{ trackingMode.value }}" {% if formData.trackingMode|default(exercise.trackingMode.value) == trackingMode.value %}selected{% endif %}>
+                                        {{ trackingMode.label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if formErrors.trackingMode is defined %}<div class="invalid-feedback d-block">{{ formErrors.trackingMode }}</div>{% endif %}
+                        </div>
+                        <div>
+                            <label class="form-label" for="exercise-type">Tipo esercizio</label>
+                            <select class="form-select {{ formErrors.exerciseType is defined ? 'is-invalid' : '' }}" id="exercise-type" name="exerciseType" required>
+                                {% for exerciseType in exerciseTypes %}
+                                    <option value="{{ exerciseType.value }}" {% if formData.exerciseType|default(exercise.exerciseType.value) == exerciseType.value %}selected{% endif %}>
+                                        {{ exerciseType.value }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if formErrors.exerciseType is defined %}<div class="invalid-feedback d-block">{{ formErrors.exerciseType }}</div>{% endif %}
+                        </div>
+                        <div>
+                            <label class="form-label" for="exercise-increment">Incremento default (kg)</label>
+                            <input class="form-control {{ formErrors.defaultIncrementKg is defined ? 'is-invalid' : '' }}" id="exercise-increment" name="defaultIncrementKg" type="text" inputmode="decimal" value="{{ formData.defaultIncrementKg|default(exercise.defaultIncrementKg) }}" placeholder="es. 2,5">
+                            {% if formErrors.defaultIncrementKg is defined %}<div class="invalid-feedback d-block">{{ formErrors.defaultIncrementKg }}</div>{% endif %}
+                            <div class="app-info-help">Usato per suggerire aumenti/riduzioni del carico.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-section">
+                    <label class="form-label" for="exercise-description">Descrizione</label>
+                    <textarea class="form-control app-touch-control {{ formErrors.description is defined ? 'is-invalid' : '' }}" id="exercise-description" name="description" rows="4" required placeholder="Descrizione breve e utile per scegliere l'esercizio.">{{ formData.description|default(exercise.description) }}</textarea>
+                    {% if formErrors.description is defined %}<div class="invalid-feedback d-block">{{ formErrors.description }}</div>{% endif %}
+                </div>
+
+                <div class="app-section">
+                    <label class="form-label" for="exercise-instructions">Istruzioni esecuzione</label>
+                    <textarea class="form-control app-touch-control" id="exercise-instructions" name="executionInstructions" rows="4" placeholder="Setup, movimento, range, respirazione, sicurezza.">{{ formData.executionInstructions|default(exercise.executionInstructions) }}</textarea>
+                </div>
+
+                <div class="app-section">
+                    <div class="app-field-grid">
+                        <div>
+                            <label class="form-label" for="exercise-primary-muscles">Muscoli principali</label>
+                            <input class="form-control" id="exercise-primary-muscles" name="primaryMuscles" type="text" value="{{ formData.primaryMuscles|default(exercise.primaryMuscles|join(', ')) }}" placeholder="quadricipiti, glutei">
+                            <div class="app-info-help">Separali con una virgola.</div>
+                        </div>
+                        <div>
+                            <label class="form-label" for="exercise-secondary-muscles">Muscoli secondari</label>
+                            <input class="form-control" id="exercise-secondary-muscles" name="secondaryMuscles" type="text" value="{{ formData.secondaryMuscles|default(exercise.secondaryMuscles|join(', ')) }}" placeholder="core, femorali">
+                            <div class="app-info-help">Separali con una virgola.</div>
+                        </div>
+                        <div>
+                            <label class="form-label" for="exercise-image">Percorso immagine</label>
+                            <input class="form-control" id="exercise-image" name="imagePath" type="text" value="{{ formData.imagePath|default(exercise.imagePath) }}" placeholder="opzionale">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-section">
+                    <label class="form-label" for="exercise-secondary-equipment">Note attrezzatura</label>
+                    <textarea class="form-control app-touch-control" id="exercise-secondary-equipment" name="secondaryEquipmentNotes" rows="3" placeholder="Alternative, accessori, setup macchina...">{{ formData.secondaryEquipmentNotes|default(exercise.secondaryEquipmentNotes) }}</textarea>
+                </div>
+
+                <div class="app-section">
+                    <label class="form-check">
+                        <input class="form-check-input" type="checkbox" name="isFundamental" value="1" {% if (formSubmitted and formData.isFundamental is defined) or (not formSubmitted and exercise.fundamental) %}checked{% endif %}>
+                        <span class="form-check-label fw-bold">Esercizio fondamentale</span>
+                    </label>
+                    <div class="app-info-help">Utile per progressioni principali come Trenino Invictus.</div>
+                </div>
+            </div>
+
+            <div class="app-mobile-card-footer app-action-grid">
+                <button class="btn btn-primary" type="submit">
+                    <span class="ti ti-device-floppy me-1"></span>
+                    {{ mode == 'new' ? 'Crea esercizio' : 'Salva modifiche' }}
+                </button>
+                <a href="{{ path('app_exercise_index') }}" class="btn btn-outline-secondary">Annulla</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-alert-triangle"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Nota</h3>
+                        <div class="text-secondary small">L’esercizio può essere già usato nel diario.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <p class="app-description text-secondary mb-0">
+                    Se un esercizio è già collegato a schede, sessioni o calibrazioni, l’eliminazione può essere bloccata per proteggere lo storico. In quel caso conviene modificarlo.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mode == 'new' ? 'Nuova attrezzatura' : 'Modifica attrezzatura' }} · FitnessTracker{% endblock %}
+{% block page_title %}{{ mode == 'new' ? 'Nuova attrezzatura' : 'Modifica attrezzatura' }}{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary mt-1">
+        Gestione archivio attrezzature, macchine e accessori usati dagli esercizi.
+    </div>
+{% endblock %}
+{% block page_actions %}
+    <div class="btn-list">
+        <a href="{{ path('app_equipment_index') }}" class="btn btn-outline-secondary">
+            <span class="ti ti-arrow-left me-1"></span>
+            Attrezzature
+        </a>
+        {% if mode == 'edit' %}
+            <a href="{{ path('app_equipment_show', { slug: equipment.slug }) }}" class="btn btn-outline-primary">
+                Apri scheda
+            </a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block body %}
+{% set formErrors = formErrors|default({}) %}
+{% set formData = formData|default({}) %}
+{% set formSubmitted = formSubmitted|default(false) %}
+<div class="row row-cards">
+    <div class="col-lg-8">
+        <form method="post" class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-tools"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Dati attrezzatura</h3>
+                        <div class="text-secondary small">I campi nome, tipo e descrizione sono obbligatori.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-mobile-card-body">
+                <div class="app-field-grid">
+                    <div>
+                        <label class="form-label" for="equipment-name">Nome</label>
+                        <input class="form-control {{ formErrors.name is defined ? 'is-invalid' : '' }}" id="equipment-name" name="name" type="text" data-slug-source="#equipment-slug" required value="{{ formData.name|default(equipment.name) }}" placeholder="es. Leg extension">
+                        {% if formErrors.name is defined %}<div class="invalid-feedback d-block">{{ formErrors.name }}</div>{% endif %}
+                    </div>
+                    <div>
+                        <label class="form-label" for="equipment-slug">Slug</label>
+                        <input class="form-control {{ formErrors.slug is defined ? 'is-invalid' : '' }}" id="equipment-slug" name="slug" type="text" value="{{ formData.slug|default(equipment.slug) }}" placeholder="automatico se vuoto">
+                        {% if formErrors.slug is defined %}<div class="invalid-feedback d-block">{{ formErrors.slug }}</div>{% endif %}
+                        <div class="app-info-help">Usato negli URL. Se resta vuoto viene compilato automaticamente dal nome; se lo modifichi a mano non viene più sovrascritto.</div>
+                    </div>
+                    <div>
+                        <label class="form-label" for="equipment-type">Tipo</label>
+                        <select class="form-select {{ formErrors.type is defined ? 'is-invalid' : '' }}" id="equipment-type" name="type" required>
+                            {% for equipmentType in equipmentTypes %}
+                                <option value="{{ equipmentType.value }}" {% if formData.type|default(equipment.type.value) == equipmentType.value %}selected{% endif %}>
+                                    {{ equipmentType.value }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if formErrors.type is defined %}<div class="invalid-feedback d-block">{{ formErrors.type }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="app-section">
+                    <label class="form-label" for="equipment-description">Descrizione</label>
+                    <textarea class="form-control app-touch-control {{ formErrors.description is defined ? 'is-invalid' : '' }}" id="equipment-description" name="description" rows="4" required placeholder="Descrizione breve e utile per scegliere l'attrezzatura.">{{ formData.description|default(equipment.description) }}</textarea>
+                    {% if formErrors.description is defined %}<div class="invalid-feedback d-block">{{ formErrors.description }}</div>{% endif %}
+                </div>
+
+                <div class="app-section">
+                    <label class="form-label" for="equipment-usage">Istruzioni d'uso</label>
+                    <textarea class="form-control app-touch-control" id="equipment-usage" name="usageInstructions" rows="4" placeholder="Note operative, setup, regolazioni, sicurezza.">{{ formData.usageInstructions|default(equipment.usageInstructions) }}</textarea>
+                </div>
+
+                <div class="app-section">
+                    <div class="app-field-grid">
+                        <div>
+                            <label class="form-label" for="equipment-image">Percorso immagine</label>
+                            <input class="form-control" id="equipment-image" name="imagePath" type="text" value="{{ formData.imagePath|default(equipment.imagePath) }}" placeholder="opzionale">
+                        </div>
+                        <div class="d-flex align-items-end">
+                            <label class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="isMachine" value="1" {% if (formSubmitted and formData.isMachine is defined) or (not formSubmitted and equipment.machine) %}checked{% endif %}>
+                                <span class="form-check-label fw-bold">È una macchina</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-mobile-card-footer app-action-grid">
+                <button class="btn btn-primary" type="submit">
+                    <span class="ti ti-device-floppy me-1"></span>
+                    {{ mode == 'new' ? 'Crea attrezzatura' : 'Salva modifiche' }}
+                </button>
+                <a href="{{ path('app_equipment_index') }}" class="btn btn-outline-secondary">Annulla</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-alert-triangle"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Attenzione</h3>
+                        <div class="text-secondary small">L’attrezzatura può essere collegata a esercizi e palestra.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <p class="app-description text-secondary mb-0">
+                    Modificando nome e slug cambi anche il link della scheda. Eliminare un’attrezzatura può rimuoverla dalla disponibilità palestra e scollegarla dagli esercizi che la usano.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ equipment.name }} · FitnessTracker{% endblock %}
+{% block page_title %}{{ equipment.name }}{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary mt-1">Scheda attrezzatura/macchina.</div>
+{% endblock %}
+{% block page_actions %}
+    <div class="btn-list">
+        <a href="{{ path('app_equipment_index') }}" class="btn btn-outline-secondary">
+            <span class="ti ti-arrow-left me-1"></span>
+            Attrezzature
+        </a>
+        <a href="{{ path('app_equipment_edit', { slug: equipment.slug }) }}" class="btn btn-primary">
+            <span class="ti ti-pencil me-1"></span>
+            Modifica
+        </a>
+    </div>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards">
+    <div class="col-lg-8">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-tools"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Descrizione</h3>
+                        <div class="text-secondary small">Informazioni operative sull’attrezzatura.</div>
+                    </div>
+                </div>
+                {% if equipment.machine %}<span class="badge bg-blue-lt">macchina</span>{% else %}<span class="badge bg-secondary-lt">attrezzo</span>{% endif %}
+            </div>
+            <div class="app-mobile-card-body">
+                <div class="app-section">
+                    <div class="app-section-title">Cos’è</div>
+                    <p class="app-description mb-0">{{ equipment.description }}</p>
+                </div>
+                {% if equipment.usageInstructions %}
+                    <div class="app-section">
+                        <div class="app-section-title">Come si usa</div>
+                        <p class="app-description mb-0">{{ equipment.usageInstructions }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-info-circle"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Dati</h3>
+                        <div class="text-secondary small">Classificazione interna.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <div class="app-info-grid">
+                    <div class="app-info-item">
+                        <div class="app-info-label">Tipo</div>
+                        <div class="app-info-value">{{ equipment.type.value }}</div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="app-info-label">Macchina</div>
+                        <div class="app-info-value">{{ equipment.machine ? 'Sì' : 'No' }}</div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="app-info-label">Slug</div>
+                        <div class="app-info-value"><code>{{ equipment.slug }}</code></div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-footer app-action-grid">
+                <a href="{{ path('app_equipment_edit', { slug: equipment.slug }) }}" class="btn btn-outline-primary">Modifica</a>
+                <form class="app-danger-action" method="post" action="{{ path('app_equipment_delete', { slug: equipment.slug }) }}" data-confirm-title="Elimina attrezzatura" data-confirm-message="Eliminare definitivamente l’attrezzatura &quot;{{ equipment.name }}&quot;?" data-confirm-submit-label="Elimina">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_equipment_' ~ equipment.id) }}">
+                    <button class="btn btn-outline-danger w-100" type="submit">Elimina</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

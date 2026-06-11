@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mode == 'new' ? 'Nuova scheda' : 'Modifica scheda' }} · FitnessTracker{% endblock %}
+{% block page_title %}{{ mode == 'new' ? 'Nuova scheda' : 'Modifica scheda' }}{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary">Imposta i dati generali della scheda. Gli esercizi si gestiscono nella pagina dettaglio.</div>
+{% endblock %}
+{% block page_actions %}
+    <div class="btn-list">
+        <a href="{{ path('app_workout_plan_index') }}" class="btn btn-outline-secondary">
+            <span class="ti ti-arrow-left me-1"></span>
+            Schede
+        </a>
+        {% if mode == 'edit' %}
+            <a href="{{ path('app_workout_plan_show', { slug: plan.slug }) }}" class="btn btn-outline-primary">Apri scheda</a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block body %}
+{% set formErrors = formErrors|default({}) %}
+{% set formData = formData|default({}) %}
+{% set formSubmitted = formSubmitted|default(false) %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <form method="post" class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-clipboard-list"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Dati scheda</h3>
+                        <div class="text-secondary small">Nome, obiettivo, giorno consigliato e stato.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <div class="app-section">
+                    <div class="app-section-title">Informazioni principali</div>
+                    <div class="app-field-grid">
+                        <div>
+                            <label class="form-label" for="name">Nome scheda</label>
+                            <input class="form-control {{ formErrors.name is defined ? 'is-invalid' : '' }}" id="name" name="name" data-slug-source="#slug" required value="{{ formData.name|default(plan.name) }}" placeholder="Es. Lunedì - Gambe">
+                            {% if formErrors.name is defined %}<div class="invalid-feedback d-block">{{ formErrors.name }}</div>{% endif %}
+                        </div>
+                        <div>
+                            <label class="form-label" for="slug">Slug</label>
+                            <input class="form-control {{ formErrors.slug is defined ? 'is-invalid' : '' }}" id="slug" name="slug" value="{{ formData.slug|default(plan.slug) }}" placeholder="automatico se vuoto">
+                            {% if formErrors.slug is defined %}<div class="invalid-feedback d-block">{{ formErrors.slug }}</div>{% endif %}
+                            <div class="app-info-help">Usato negli URL. Se resta vuoto viene compilato automaticamente dal nome; se lo modifichi a mano non viene più sovrascritto.</div>
+                        </div>
+                        <div>
+                            <label class="form-label" for="goal">Obiettivo</label>
+                            <select class="form-select" id="goal" name="goal">
+                                {% for goal in goals %}
+                                    <option value="{{ goal.value }}" {% if formData.goal|default(plan.goal.value) == goal.value %}selected{% endif %}>{{ goal.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" for="suggestedDayOfWeek">Giorno consigliato</label>
+                            <select class="form-select" id="suggestedDayOfWeek" name="suggestedDayOfWeek">
+                                <option value="">Non impostato</option>
+                                <option value="1" {% if formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == '1' or formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == 1 %}selected{% endif %}>Lunedì</option>
+                                <option value="2" {% if formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == '2' or formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == 2 %}selected{% endif %}>Martedì</option>
+                                <option value="3" {% if formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == '3' or formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == 3 %}selected{% endif %}>Mercoledì</option>
+                                <option value="4" {% if formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == '4' or formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == 4 %}selected{% endif %}>Giovedì</option>
+                                <option value="5" {% if formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == '5' or formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == 5 %}selected{% endif %}>Venerdì</option>
+                                <option value="6" {% if formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == '6' or formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == 6 %}selected{% endif %}>Sabato</option>
+                                <option value="7" {% if formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == '7' or formData.suggestedDayOfWeek|default(plan.suggestedDayOfWeek) == 7 %}selected{% endif %}>Domenica</option>
+                            </select>
+                        </div>
+                        <div class="d-flex align-items-end">
+                            <label class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="isActive" value="1" {% if (formSubmitted and formData.isActive is defined) or (not formSubmitted and plan.active) %}checked{% endif %}>
+                                <span class="form-check-label fw-bold">Scheda attiva</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="app-section">
+                    <div class="app-section-title">Note</div>
+                    <label class="form-label" for="description">Descrizione / note</label>
+                    <textarea class="form-control app-touch-control" id="description" name="description" rows="4" placeholder="Obiettivo, logica della scheda, note di recupero...">{{ formData.description|default(plan.description) }}</textarea>
+                </div>
+            </div>
+            <div class="app-mobile-card-footer app-action-grid">
+                <a href="{{ mode == 'edit' ? path('app_workout_plan_show', { slug: plan.slug }) : path('app_workout_plan_index') }}" class="btn btn-outline-secondary">Annulla</a>
+                <button class="btn btn-primary" type="submit">{{ mode == 'new' ? 'Crea scheda' : 'Salva modifiche' }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

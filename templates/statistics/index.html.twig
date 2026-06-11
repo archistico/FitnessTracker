@@ -1,0 +1,254 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiche · FitnessTracker{% endblock %}
+{% block page_title %}Statistiche{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary mt-1">Riepilogo base di diario, volume, ripetizioni e progressione per esercizio.</div>
+{% endblock %}
+{% block page_actions %}
+    <div class="btn-list">
+        <a href="{{ path('app_workout_session_index') }}" class="btn btn-outline-primary">Diario</a>
+        <a href="{{ path('app_exercise_index') }}" class="btn btn-outline-secondary">Esercizi</a>
+    </div>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards mb-3">
+    <div class="col-12">
+        <form method="get" action="{{ path('app_statistics_index') }}" class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-filter"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Filtri statistiche</h3>
+                        <div class="text-secondary small">Restringi l’analisi per periodo o tipo sessione.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <div class="app-field-grid">
+                    <div>
+                        <label class="form-label" for="dateFrom">Dal</label>
+                        <input class="form-control" id="dateFrom" name="dateFrom" type="date" value="{{ filters.dateFromInput }}">
+                    </div>
+                    <div>
+                        <label class="form-label" for="dateTo">Al</label>
+                        <input class="form-control" id="dateTo" name="dateTo" type="date" value="{{ filters.dateToInput }}">
+                    </div>
+                    <div>
+                        <label class="form-label" for="sessionType">Tipo sessione</label>
+                        <select class="form-select" id="sessionType" name="sessionType">
+                            <option value="">Tutti i tipi</option>
+                            {% for sessionType in sessionTypes %}
+                                <option value="{{ sessionType.value }}" {% if filters.sessionTypeInput == sessionType.value %}selected{% endif %}>{{ sessionType.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-footer app-action-grid">
+                <button class="btn btn-primary" type="submit">Applica filtri</button>
+                <a class="btn btn-outline-secondary" href="{{ path('app_statistics_index') }}">Azzera filtri</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row row-cards">
+    <div class="col-6 col-lg-2">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">Sessioni</div>
+                <div class="h2 mb-2">{{ summary.completedSessionCount }}</div>
+                <div class="text-secondary small">Con almeno una serie registrata.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">Esercizi</div>
+                <div class="h2 mb-2">{{ summary.exerciseCount }}</div>
+                <div class="text-secondary small">Con dati nel diario.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">Serie</div>
+                <div class="h2 mb-2">{{ summary.completedSets }}</div>
+                <div class="text-secondary small">Serie compilate.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">Ripetizioni</div>
+                <div class="h2 mb-2">{{ summary.totalReps }}</div>
+                <div class="text-secondary small">Totale registrato.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">Volume</div>
+                <div class="h2 mb-2">{{ summary.totalVolume|number_format(0, ',', '.') }}</div>
+                <div class="text-secondary small">Kg × ripetizioni.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card app-metric-card">
+            <div class="card-body">
+                <div class="subheader">RIR medio</div>
+                <div class="h2 mb-2">{{ summary.averageRir is not null ? summary.averageRir|number_format(1, ',', '.') : '-' }}</div>
+                <div class="text-secondary small">Ripetizioni in riserva.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-chart-bar"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Progressione per esercizio</h3>
+                        <div class="text-secondary small">Ordinata per volume totale. È una prima vista operativa, senza grafici.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                {% if exerciseStats %}
+                    <div class="row row-cards">
+                        {% for item in exerciseStats %}
+                            <div class="col-md-6">
+                                <div class="app-mobile-card">
+                                    <div class="app-mobile-card-header">
+                                        <div class="d-flex gap-3 align-items-start">
+                                            <div class="app-card-number">{{ loop.index }}</div>
+                                            <div>
+                                                <h3 class="card-title mb-1">
+                                                    <a href="{{ path('app_statistics_exercise', filterQuery|merge({ slug: item.exerciseSlug })) }}">{{ item.exerciseName }}</a>
+                                                </h3>
+                                                <div class="text-secondary small">{{ item.trackingMode }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="app-mobile-card-body">
+                                        <div class="app-info-grid">
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Sessioni</div>
+                                                <div class="app-info-value">{{ item.sessionCount }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Serie</div>
+                                                <div class="app-info-value">{{ item.completedSets }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Volume</div>
+                                                <div class="app-info-value">{{ item.totalVolume|number_format(0, ',', '.') }} kg</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Ripetizioni</div>
+                                                <div class="app-info-value">{{ item.totalReps }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Miglior peso</div>
+                                                <div class="app-info-value">{{ item.bestWeightKg is not null ? item.bestWeightKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Ultimo peso</div>
+                                                <div class="app-info-value">{{ item.lastWeightKg is not null ? item.lastWeightKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">RIR medio</div>
+                                                <div class="app-info-value">{{ item.averageRir is not null ? item.averageRir|number_format(1, ',', '.') : '-' }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Ultima sessione</div>
+                                                <div class="app-info-value">{{ item.lastSessionDate ? item.lastSessionDate|date('d/m/Y') : '-' }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="app-mobile-card-footer app-action-grid">
+                                        <a class="btn btn-outline-primary" href="{{ path('app_statistics_exercise', filterQuery|merge({ slug: item.exerciseSlug })) }}">Storico esercizio</a>
+                                        <a class="btn btn-outline-secondary" href="{{ path('app_exercise_show', { slug: item.exerciseSlug }) }}">Scheda esercizio</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty">
+                        <div class="empty-icon"><span class="ti ti-chart-bar"></span></div>
+                        <p class="empty-title">Nessun dato statistico</p>
+                        <p class="empty-subtitle text-secondary">Registra almeno una serie nel diario per vedere le statistiche.</p>
+                        <div class="empty-action">
+                            <a href="{{ path('app_workout_session_index') }}" class="btn btn-primary">Apri diario</a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-history"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Ultime serie registrate</h3>
+                        <div class="text-secondary small">Le ultime 20 serie compilate, utili per controllo rapido.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                {% if recentRows %}
+                    <div class="table-responsive">
+                        <table class="table table-vcenter">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Esercizio</th>
+                                    <th>Serie</th>
+                                    <th>Registrato</th>
+                                    <th>Volume</th>
+                                    <th>RIR</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in recentRows %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold">{{ row.date|date('d/m/Y') }}</div>
+                                            <div class="text-secondary small">{{ row.sessionType }}</div>
+                                        </td>
+                                        <td>{{ row.exerciseName }}</td>
+                                        <td>{{ row.setNumber }}</td>
+                                        <td>{{ row.summary }}</td>
+                                        <td>{{ row.volume > 0 ? row.volume|number_format(0, ',', '.') ~ ' kg' : '-' }}</td>
+                                        <td>{{ row.rir is not null ? row.rir|number_format(1, ',', '.') : '-' }}</td>
+                                        <td class="text-end">
+                                            {% if row.sessionId %}
+                                                <a href="{{ path('app_workout_session_show', { id: row.sessionId }) }}" class="btn btn-sm btn-outline-primary">Apri</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-secondary mb-0">Nessuna serie registrata.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

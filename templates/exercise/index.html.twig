@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Esercizi · FitnessTracker{% endblock %}
+{% block page_title %}Esercizi{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary mt-1">Archivio esercizi con modalità di registrazione, muscoli e attrezzatura principale.</div>
+{% endblock %}
+{% block page_actions %}
+    <div class="btn-list">
+        <a href="{{ path('app_exercise_new') }}" class="btn btn-primary">
+            <span class="ti ti-plus me-1"></span>
+            Nuovo esercizio
+        </a>
+        <a href="{{ path('app_exercise_index') }}" class="btn {{ not availableOnly ? 'btn-secondary' : 'btn-outline-secondary' }}">Tutti</a>
+        <a href="{{ path('app_exercise_index', {available: 1}) }}" class="btn {{ availableOnly ? 'btn-secondary' : 'btn-outline-secondary' }}">Solo disponibili</a>
+    </div>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards">
+    {% for exercise in exercises %}
+        {% set equipment = exercise.defaultEquipment %}
+        {% set isAvailable = equipment is null or equipment.slug in availableEquipmentSlugs %}
+        <div class="col-md-6">
+            <div class="app-mobile-card">
+                <div class="app-mobile-card-header">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="app-card-number"><span class="ti ti-activity"></span></div>
+                        <div>
+                            <h3 class="card-title mb-1">
+                                <a href="{{ path('app_exercise_show', {slug: exercise.slug}) }}">{{ exercise.name }}</a>
+                            </h3>
+                            <div class="text-secondary small">{{ exercise.trackingMode.label }}</div>
+                        </div>
+                    </div>
+                    {% if isAvailable %}
+                        <span class="badge bg-green-lt">disponibile</span>
+                    {% else %}
+                        <span class="badge bg-red-lt">non disponibile</span>
+                    {% endif %}
+                </div>
+                <div class="app-mobile-card-body">
+                    <div class="app-info-grid">
+                        <div class="app-info-item">
+                            <div class="app-info-label">Attrezzatura</div>
+                            <div class="app-info-value">
+                                {% if equipment %}
+                                    {{ equipment.name }}
+                                {% else %}
+                                    Nessuna
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="app-info-item">
+                            <div class="app-info-label">Tracking</div>
+                            <div class="app-info-value">{{ exercise.trackingMode.label }}</div>
+                        </div>
+                        <div class="app-info-item">
+                            <div class="app-info-label">Fondamentale</div>
+                            <div class="app-info-value">{{ exercise.fundamental ? 'Sì' : 'No' }}</div>
+                        </div>
+                    </div>
+                    <div class="app-section">
+                        <div class="app-section-title">Descrizione</div>
+                        <p class="app-description text-secondary mb-0">{{ exercise.description }}</p>
+                    </div>
+                </div>
+                <div class="app-mobile-card-footer app-action-grid">
+                    <a class="btn btn-outline-primary" href="{{ path('app_exercise_show', {slug: exercise.slug}) }}">Apri esercizio</a>
+                    <a class="btn btn-outline-secondary" href="{{ path('app_exercise_edit', {slug: exercise.slug}) }}">Modifica</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="empty">
+                <p class="empty-title">Nessun esercizio trovato</p>
+                <p class="empty-subtitle text-secondary">Nessun esercizio corrisponde ai filtri correnti.</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

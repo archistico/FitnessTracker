@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Calibrazione iniziale · FitnessTracker{% endblock %}
+{% block page_title %}Calibrazione iniziale{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary mt-1">Avvia una sessione dedicata per capire i carichi iniziali da usare nei range del Trenino.</div>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards">
+    <div class="col-12">
+        <div class="alert alert-info" role="alert">
+            La calibrazione è un allenamento separato: scegli un esercizio, registra alcune serie test con peso, ripetizioni e ripetizioni in riserva, poi finalizza per calcolare i carichi 10-12, 8-10, 6-8 e 4-6.
+        </div>
+    </div>
+
+    {% for exercise in exercises %}
+        {% set profile = exercise.id is not null and profilesByExerciseId[exercise.id] is defined ? profilesByExerciseId[exercise.id] : null %}
+        <div class="col-md-6">
+            <div class="app-mobile-card">
+                <div class="app-mobile-card-header">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="app-card-number"><span class="ti ti-adjustments"></span></div>
+                        <div>
+                            <h3 class="card-title mb-1">{{ exercise.name }}</h3>
+                            <div class="text-secondary small">{{ exercise.trackingMode.label }}</div>
+                        </div>
+                    </div>
+                    {% if profile %}
+                        <span class="badge {{ profile.confidence.badgeClass }}">{{ profile.confidence.label }}</span>
+                    {% elseif exercise.trackingMode.usesWeight %}
+                        <span class="badge bg-orange-lt">da calibrare</span>
+                    {% else %}
+                        <span class="badge bg-secondary-lt">non a carico</span>
+                    {% endif %}
+                </div>
+                <div class="app-mobile-card-body">
+                    <div class="app-info-grid">
+                        <div class="app-info-item">
+                            <div class="app-info-label">Attrezzatura</div>
+                            <div class="app-info-value">{{ exercise.defaultEquipment ? exercise.defaultEquipment.name : 'Nessuna' }}</div>
+                        </div>
+                        <div class="app-info-item">
+                            <div class="app-info-label">Incremento</div>
+                            <div class="app-info-value">{{ exercise.defaultIncrementKg|number_format(1, ',', '.') }} kg</div>
+                        </div>
+                        <div class="app-info-item">
+                            <div class="app-info-label">Stato</div>
+                            <div class="app-info-value">{{ profile ? 'Profilo presente' : (exercise.trackingMode.usesWeight ? 'Da calibrare' : 'Non necessario') }}</div>
+                        </div>
+                    </div>
+
+                    {% if profile %}
+                        <div class="app-section">
+                            <div class="app-section-title">Ultimi carichi stimati</div>
+                            <p class="app-description text-secondary mb-0">{{ profile.rangeSummary }}</p>
+                        </div>
+                    {% else %}
+                        <div class="app-section">
+                            <div class="app-section-title">Indicazione</div>
+                            <p class="app-description text-secondary mb-0">
+                                {% if exercise.trackingMode.usesWeight %}
+                                    Avvia la calibrazione e registra almeno una serie test con peso e ripetizioni. Le ripetizioni in riserva rendono la stima più affidabile.
+                                {% else %}
+                                    Questo esercizio non richiede un profilo carichi perché non usa kg + reps come dato principale.
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="app-mobile-card-footer app-action-grid">
+                    {% if exercise.trackingMode.usesWeight %}
+                        <form method="post" action="{{ path('app_calibration_start', { slug: exercise.slug }) }}" class="app-mobile-full">
+                            <button class="btn btn-primary w-100" type="submit">{{ profile ? 'Ricalibra' : 'Avvia calibrazione' }}</button>
+                        </form>
+                    {% else %}
+                        <button class="btn btn-outline-secondary w-100" type="button" disabled>Calibrazione non necessaria</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="empty">
+                <p class="empty-title">Nessun esercizio disponibile</p>
+                <p class="empty-subtitle text-secondary">Esegui le fixture per caricare il catalogo iniziale.</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

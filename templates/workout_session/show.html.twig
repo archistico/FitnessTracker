@@ -1,0 +1,496 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Allenamento {{ session.sessionDate|date('d/m/Y') }} · FitnessTracker{% endblock %}
+{% block page_title %}{{ session.sessionType.value == 'calibration' ? 'Calibrazione' : 'Allenamento' }} del {{ session.sessionDate|date('d/m/Y') }}{% endblock %}
+{% block page_subtitle %}
+    <div class="text-secondary">
+        {{ session.workoutPlan ? session.workoutPlan.name : 'Allenamento libero' }} ·
+        {{ session.sessionType.label }} ·
+        <span class="badge {{ session.status.badgeClass }}">{{ session.status.label }}</span>
+    </div>
+{% endblock %}
+{% block page_actions %}
+    <div class="btn-list">
+        {% if session.sessionType.value == 'calibration' %}
+            <form method="post" action="{{ path('app_calibration_complete', { id: session.id }) }}">
+                <button class="btn btn-success" type="submit">Finalizza calibrazione</button>
+            </form>
+            <a href="{{ path('app_workout_session_edit', { id: session.id }) }}" class="btn btn-outline-primary">Modifica</a>
+            <a href="{{ path('app_calibration_index') }}" class="btn btn-outline-secondary">Calibrazioni</a>
+        {% else %}
+            <form method="post" action="{{ path('app_workout_session_complete', { id: session.id }) }}">
+                <button class="btn btn-success" type="submit">Chiudi allenamento</button>
+            </form>
+            <a href="{{ path('app_workout_session_edit', { id: session.id }) }}" class="btn btn-outline-primary">Modifica</a>
+            <a href="{{ path('app_workout_session_index') }}" class="btn btn-outline-secondary">Diario</a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .workout-summary-card .h2 { line-height: 1; }
+        .exercise-session-card { scroll-margin-top: 1rem; }
+        .set-log-card { border: 1px solid var(--tblr-border-color); border-radius: var(--tblr-border-radius-lg); background: var(--tblr-bg-surface); overflow: hidden; }
+        .set-log-card.is-next-set { border-color: var(--tblr-primary); box-shadow: 0 0 0 0.15rem rgba(var(--tblr-primary-rgb), .12); }
+        .set-log-card:target { border-color: var(--tblr-success); box-shadow: 0 0 0 0.18rem rgba(var(--tblr-success-rgb), .16); }
+        html.show-open-sets-only .set-log-card[data-open-set="0"] { display: none; }
+        html.show-open-sets-only .exercise-session-card[data-open-set-count="0"] { display: none; }
+        .set-log-card.is-next-set .set-log-header { background: var(--tblr-primary-lt); }
+        .set-log-card + .set-log-card { margin-top: 1rem; }
+        .set-log-header { display: flex; gap: .75rem; justify-content: space-between; align-items: flex-start; padding: .9rem 1rem; border-bottom: 1px solid var(--tblr-border-color); background: var(--tblr-bg-surface-secondary); }
+        .set-log-number { min-width: 2.6rem; height: 2.6rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; background: var(--tblr-primary-lt); color: var(--tblr-primary); font-size: 1.05rem; }
+        .set-log-body { padding: 1rem; }
+        .set-prescription { display: grid; grid-template-columns: 1fr; gap: .75rem; margin-bottom: 1rem; }
+        .set-prescription-item { border: 1px solid var(--tblr-border-color); border-radius: var(--tblr-border-radius); padding: .8rem; background: var(--tblr-bg-surface-secondary); }
+        .set-prescription-label { font-size: .7rem; font-weight: 750; text-transform: uppercase; letter-spacing: .045em; color: var(--tblr-secondary); margin-bottom: .15rem; }
+        .set-prescription-value { font-weight: 750; font-size: 1.02rem; }
+        .set-prescription-help { font-size: .78rem; color: var(--tblr-secondary); margin-top: .25rem; line-height: 1.25; }
+        .set-suggestion-copy { margin-top: .65rem; display: grid; gap: .4rem; }
+        .set-suggestion-copy .btn { min-height: 2.65rem; font-weight: 700; }
+        .set-suggestion-copy-status { font-size: .78rem; color: var(--tblr-success); font-weight: 700; min-height: 1rem; }
+        .set-section { border-top: 1px solid var(--tblr-border-color); padding-top: 1rem; margin-top: 1rem; }
+        .set-section:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+        .set-section-title { font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .045em; color: var(--tblr-secondary); margin-bottom: .65rem; }
+        .set-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+        .set-field-grid .form-label { font-size: .8rem; font-weight: 700; margin-bottom: .25rem; }
+        .set-field-help { font-size: .74rem; color: var(--tblr-secondary); line-height: 1.2; margin-top: .25rem; }
+        .set-field-grid .form-control, .set-field-grid .form-select { min-height: 3rem; font-size: 1.02rem; }
+        .set-note textarea { min-height: 5rem; font-size: 1rem; }
+        .set-log-actions { display: grid; gap: .75rem; margin-top: 1rem; }
+        .set-log-actions .btn { min-height: 3rem; font-weight: 700; }
+        .skip-set-form { border-top: 1px dashed var(--tblr-border-color); padding-top: .9rem; margin-top: .9rem; }
+        .set-adjustment { border: 1px solid var(--tblr-border-color); border-radius: var(--tblr-border-radius); padding: .85rem; margin-bottom: 1rem; background: var(--tblr-bg-surface-secondary); }
+        .set-adjustment-title { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .35rem; }
+        .set-adjustment-message { line-height: 1.35; }
+        .set-adjustment-next { margin-top: .55rem; font-weight: 750; }
+        @media (min-width: 768px) {
+            .set-prescription { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .set-field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .set-log-actions { display: flex; justify-content: flex-end; align-items: end; }
+            .set-log-actions .btn { min-width: 11rem; }
+        }
+        @media (max-width: 575.98px) {
+            .page-header .btn-list { width: 100%; }
+            .page-header .btn-list .btn, .page-header .btn-list form { width: 100%; }
+            .set-log-header { flex-direction: column; align-items: stretch; }
+            .set-log-header .badge-list { justify-content: flex-start; }
+            .set-log-body { padding: .85rem; }
+            .set-field-grid { gap: .65rem; }
+            .set-field-grid .form-control, .set-field-grid .form-select { min-height: 3.15rem; }
+            .set-log-actions .btn { width: 100%; }
+            .skip-set-form { display: grid; gap: .5rem; }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards">
+    <div class="col-6 col-lg-3">
+        <div class="card workout-summary-card">
+            <div class="card-body">
+                <div class="subheader">Serie registrate</div>
+                <div class="h2 mb-2">{{ summary.completedSets }}/{{ summary.plannedSets }}</div>
+                <div class="text-secondary small">{{ summary.skippedSets }} saltate · {{ summary.remainingSets }} aperte · {{ summary.completionPercent }}% chiuse.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card workout-summary-card">
+            <div class="card-body">
+                <div class="subheader">Volume</div>
+                <div class="h2 mb-2">{{ summary.totalWeightVolume|number_format(0, ',', '.') }} kg</div>
+                <div class="text-secondary small">Somma kg × reps.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card workout-summary-card">
+            <div class="card-body">
+                <div class="subheader">Ripetizioni</div>
+                <div class="h2 mb-2">{{ summary.totalReps }}</div>
+                <div class="text-secondary small">Ripetizioni registrate.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card workout-summary-card">
+            <div class="card-body">
+                <div class="subheader">Ripetizioni in riserva medie (RIR)</div>
+                <div class="h2 mb-2">{{ summary.averageRir is not null ? summary.averageRir|number_format(1, ',', '.') : '-' }}</div>
+                <div class="text-secondary small">Margine medio stimato.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        {% if session.sessionType.value == 'calibration' %}
+            <div class="alert alert-info" role="alert">
+                Questa è una sessione di calibrazione: registra serie progressive con peso, ripetizioni e ripetizioni in riserva. Quando hai abbastanza dati, usa “Finalizza calibrazione” per salvare i carichi stimati dei range 10-12, 8-10, 6-8 e 4-6.
+            </div>
+        {% else %}
+            <div class="alert alert-warning" role="alert">
+                Il carico suggerito compare quando una serie ha un peso target. Se vedi “Non disponibile”, devi inserire tu il carico reale della serie oppure creare prima una calibrazione. Dopo il salvataggio di una serie, il sistema può aggiornare automaticamente il carico suggerito della prossima serie compatibile ancora aperta.
+            </div>
+        {% endif %}
+    </div>
+    {% if nextOpenSetId %}
+        <div class="col-12">
+            <div class="alert alert-primary d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2" role="alert">
+                <div>
+                    <strong>Prossima serie da compilare.</strong>
+                    Ho evidenziato la prima serie ancora aperta del diario.
+                </div>
+                <a class="btn btn-primary btn-sm" href="#set-{{ nextOpenSetId }}">Vai alla prossima serie</a>
+            </div>
+        </div>
+    {% endif %}
+    {% if summary.remainingSets > 0 %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2">
+                    <div>
+                        <div class="fw-bold">Vista allenamento</div>
+                        <div class="text-secondary small">Puoi nascondere le serie già registrate o saltate e lasciare visibili solo quelle ancora da compilare.</div>
+                    </div>
+                    <button class="btn btn-outline-primary" type="button" id="js-toggle-open-sets-only">
+                        Mostra solo serie aperte
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% for exerciseSession in session.exerciseSessions %}
+    {% set mode = exerciseSession.exercise.trackingMode %}
+    {% set openSetCount = exerciseSession.setLogs|filter(s => not s.skipped and not s.hasActualData)|length %}
+    <div class="card mt-3 exercise-session-card" id="exercise-{{ exerciseSession.id }}" data-open-set-count="{{ openSetCount }}">
+        <div class="card-header flex-column flex-md-row align-items-start align-items-md-center gap-3">
+            <div class="flex-fill">
+                <h3 class="card-title mb-1">{{ exerciseSession.position }}. {{ exerciseSession.exercise.name }}</h3>
+                <div class="text-secondary small">
+                    {{ mode.label }} · {{ exerciseSession.progressionType.label }} · <span class="badge {{ exerciseSession.status.badgeClass }}">{{ exerciseSession.status.label }}</span>
+                    {% if exerciseSession.skipReason %}<span class="text-warning ms-2">{{ exerciseSession.skipReason }}</span>{% endif %}
+                </div>
+            </div>
+            <div class="w-100 w-md-auto">
+                {% if exerciseSession.status.value != 'skipped' %}
+                    <form method="post" action="{{ path('app_workout_session_skip_exercise', { sessionId: session.id, exerciseSessionId: exerciseSession.id }) }}" class="d-flex flex-column flex-sm-row gap-2">
+                        <input class="form-control form-control-sm" name="skipReason" type="text" placeholder="Motivo salto esercizio" aria-label="Motivo salto esercizio">
+                        <button class="btn btn-outline-warning btn-sm" type="submit">Salta esercizio</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card-body">
+            {% set treninoEvaluation = treninoEvaluations[exerciseSession.id] ?? null %}
+            {% if exerciseSession.progressionType.value == 'trenino_invictus' %}
+                <div class="alert alert-info mb-3" role="alert">
+                    <div class="d-flex justify-content-between gap-3 align-items-start flex-column flex-md-row">
+                        <div>
+                            <div class="fw-bold">Trenino Invictus · Step {{ exerciseSession.progressionStepNumber ?: 1 }}</div>
+                            {% if treninoEvaluation %}
+                                <div class="text-secondary mt-1">
+                                    Prossimo step stimato: <strong>{{ treninoEvaluation.nextStep }}</strong>.
+                                    {{ treninoEvaluation.reasons|first }}
+                                </div>
+                            {% else %}
+                                <div class="text-secondary mt-1">Completa le serie per valutare se avanzare o ripetere lo step.</div>
+                            {% endif %}
+                        </div>
+                        {% if treninoEvaluation %}
+                            <span class="badge {{ treninoEvaluation.badgeClass }}">{{ treninoEvaluation.label }}</span>
+                        {% endif %}
+                    </div>
+                    {% if treninoEvaluation and treninoEvaluation.reasons|length > 1 %}
+                        <ul class="mb-0 mt-2">
+                            {% for reason in treninoEvaluation.reasons|slice(1) %}
+                                <li>{{ reason }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endif %}
+            {% for setLog in exerciseSession.setLogs %}
+                <div class="set-log-card {% if nextOpenSetId == setLog.id %}is-next-set{% endif %}" id="set-{{ setLog.id }}" data-open-set="{{ (not setLog.skipped and not setLog.hasActualData) ? '1' : '0' }}">
+                    <div class="set-log-header">
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="set-log-number">{{ setLog.setNumber }}</div>
+                            <div>
+                                <div class="fw-bold">{{ exerciseSession.position }}. {{ exerciseSession.exercise.name }} - Serie {{ setLog.setNumber }}</div>
+                                <div class="text-secondary small">Target: {{ setLog.targetSummary }}</div>
+                                <div class="small mt-1">Registrato: <span class="fw-medium">{{ setLog.actualSummary }}</span></div>
+                            </div>
+                        </div>
+                        <div class="badge-list justify-content-end">
+                            {% if nextOpenSetId == setLog.id %}
+                                <span class="badge bg-primary-lt">Prossima da compilare</span>
+                            {% elseif not setLog.skipped and not setLog.hasActualData %}
+                                <span class="badge bg-blue-lt">Da compilare</span>
+                            {% endif %}
+                            {% if setLog.skipped %}
+                                <span class="badge bg-orange-lt">Saltata</span>
+                            {% endif %}
+                            {% if setLog.perceivedLoad %}
+                                <span class="badge {{ setLog.perceivedLoad.badgeClass }}">{{ setLog.perceivedLoad.label }}</span>
+                            {% endif %}
+                            {% if setLog.reachedFailure %}
+                                <span class="badge bg-red-lt">Cedimento</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="set-log-body">
+                        <div class="set-prescription" aria-label="Suggerimento serie">
+                            {% set weightSuggestion = setWeightSuggestions[setLog.id] ?? null %}
+                            <div class="set-prescription-item">
+                                <div class="set-prescription-label">Carico suggerito</div>
+                                <div class="set-prescription-value">
+                                    {{ weightSuggestion and weightSuggestion.hasWeight ? weightSuggestion.formattedWeight : 'Non disponibile' }}
+                                </div>
+                                <div class="set-prescription-help">
+                                    {% if weightSuggestion %}
+                                        <strong>{{ weightSuggestion.sourceLabel }}.</strong> {{ weightSuggestion.helpText }}
+                                    {% else %}
+                                        Manca un profilo carichi, una progressione che lo calcoli o una serie precedente compatibile.
+                                    {% endif %}
+                                </div>
+                                {% if weightSuggestion and weightSuggestion.hasWeight %}
+                                    <div class="set-suggestion-copy">
+                                        <button
+                                            class="btn btn-outline-primary btn-sm js-copy-suggested-weight"
+                                            type="button"
+                                            data-target-input="weight-{{ setLog.id }}"
+                                            data-weight="{{ weightSuggestion.weightKg }}"
+                                        >
+                                            Usa questo peso
+                                        </button>
+                                        <div class="set-suggestion-copy-status" aria-live="polite"></div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="set-prescription-item">
+                                <div class="set-prescription-label">Ripetizioni / durata target</div>
+                                <div class="set-prescription-value">{{ setLog.targetSummary }}</div>
+                            </div>
+                            <div class="set-prescription-item">
+                                <div class="set-prescription-label">Recupero previsto</div>
+                                <div class="set-prescription-value">{{ setLog.restSecondsPlanned is not null ? setLog.restSecondsPlanned ~ ' secondi' : 'Non impostato' }}</div>
+                                {% if setLog.restSecondsPlanned is not null %}
+                                    <div class="set-suggestion-copy">
+                                        <button
+                                            class="btn btn-outline-primary btn-sm js-copy-planned-rest"
+                                            type="button"
+                                            data-target-input="rest-{{ setLog.id }}"
+                                            data-rest="{{ setLog.restSecondsPlanned }}"
+                                        >
+                                            Usa questo recupero
+                                        </button>
+                                        <div class="set-suggestion-copy-status" aria-live="polite"></div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% set loadAdjustment = setLoadAdjustments[setLog.id] ?? null %}
+                        {% if loadAdjustment %}
+                            <div class="set-adjustment">
+                                <div class="set-adjustment-title">
+                                    <div class="fw-bold">
+                                        <span class="ti ti-adjustments me-1"></span>
+                                        Correzione dopo questa serie
+                                    </div>
+                                    <span class="badge {{ loadAdjustment.badgeClass }}">{{ loadAdjustment.label }}</span>
+                                </div>
+                                <div class="set-adjustment-message text-secondary">{{ loadAdjustment.message }}</div>
+                                {% if loadAdjustment.hasSuggestedWeight %}
+                                    <div class="set-adjustment-next">
+                                        Peso consigliato per la prossima serie: {{ loadAdjustment.formattedSuggestedWeight }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        <form method="post" action="{{ path('app_workout_session_update_set', { sessionId: session.id, setId: setLog.id }) }}">
+                            <div class="set-section">
+                                <div class="set-section-title">Prestazione reale</div>
+                                <div class="set-field-grid">
+                                    <div>
+                                        <label class="form-label" for="weight-{{ setLog.id }}">Peso (kg)</label>
+                                        <input class="form-control" id="weight-{{ setLog.id }}" name="actualWeightKg" type="text" inputmode="decimal" enterkeyhint="next" placeholder="{{ setLog.targetWeightKg is not null ? setLog.targetWeightKg|number_format(1, ',', '.') : 'es. 80' }}" value="{{ setLog.actualWeightKg is not null ? setLog.actualWeightKg : '' }}">
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="reps-{{ setLog.id }}">Ripetizioni</label>
+                                        <input class="form-control" id="reps-{{ setLog.id }}" name="actualReps" type="number" inputmode="numeric" enterkeyhint="next" min="0" placeholder="es. 8" value="{{ setLog.actualReps is not null ? setLog.actualReps : '' }}">
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="duration-{{ setLog.id }}">Secondi</label>
+                                        <input class="form-control" id="duration-{{ setLog.id }}" name="actualDurationSeconds" type="number" inputmode="numeric" enterkeyhint="next" min="1" placeholder="es. 600" value="{{ setLog.actualDurationSeconds is not null ? setLog.actualDurationSeconds : '' }}">
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="distance-{{ setLog.id }}">Distanza (metri)</label>
+                                        <input class="form-control" id="distance-{{ setLog.id }}" name="actualDistanceMeters" type="text" inputmode="decimal" enterkeyhint="next" placeholder="es. 1200" value="{{ setLog.actualDistanceMeters is not null ? setLog.actualDistanceMeters : '' }}">
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="level-{{ setLog.id }}">Livello / resistenza macchina</label>
+                                        <input class="form-control" id="level-{{ setLog.id }}" name="actualResistanceLevel" type="number" inputmode="numeric" enterkeyhint="next" min="0" placeholder="es. 5" value="{{ setLog.actualResistanceLevel is not null ? setLog.actualResistanceLevel : '' }}">
+                                        <div class="set-field-help">Usalo per cyclette, vogatore, macchine cardio o attrezzi con livello numerico.</div>
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="rest-{{ setLog.id }}">Recupero effettivo (secondi)</label>
+                                        <input class="form-control" id="rest-{{ setLog.id }}" name="restSecondsActual" type="number" inputmode="numeric" enterkeyhint="next" min="1" placeholder="{{ setLog.restSecondsPlanned is not null ? setLog.restSecondsPlanned : 'es. 150' }}" value="{{ setLog.restSecondsActual is not null ? setLog.restSecondsActual : '' }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="set-section">
+                                <div class="set-section-title">Fatica</div>
+                                <div class="set-field-grid">
+                                    <div>
+                                        <label class="form-label" for="rir-{{ setLog.id }}">Ripetizioni in riserva (RIR)</label>
+                                        <select class="form-select" id="rir-{{ setLog.id }}" name="rir">
+                                            <option value="" {% if setLog.rir is null %}selected{% endif %}>Non indicato</option>
+                                            <option value="0" {% if setLog.rir is not null and setLog.rir == 0 %}selected{% endif %}>0 - Cedimento / non ne avevo più</option>
+                                            <option value="1" {% if setLog.rir is not null and setLog.rir == 1 %}selected{% endif %}>1 - Ne mancava circa una</option>
+                                            <option value="2" {% if setLog.rir is not null and setLog.rir == 2 %}selected{% endif %}>2 - Ne mancavano circa due</option>
+                                            <option value="3" {% if setLog.rir is not null and setLog.rir == 3 %}selected{% endif %}>3 - Margine buono</option>
+                                            <option value="4" {% if setLog.rir is not null and setLog.rir == 4 %}selected{% endif %}>4 - Molto margine</option>
+                                            <option value="5" {% if setLog.rir is not null and setLog.rir >= 5 %}selected{% endif %}>5 - Troppo facile / almeno cinque</option>
+                                        </select>
+                                        <div class="set-field-help">Seleziona 0 quando eri a cedimento: non serve nessun altro flag.</div>
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="load-{{ setLog.id }}">Percezione del carico</label>
+                                        <select class="form-select" id="load-{{ setLog.id }}" name="perceivedLoad">
+                                            <option value="">-</option>
+                                            {% for perceivedLoad in perceivedLoads %}
+                                                <option value="{{ perceivedLoad.value }}" {% if setLog.perceivedLoad == perceivedLoad %}selected{% endif %}>{{ perceivedLoad.label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="set-field-help">Valuta se il peso scelto era adeguato per quel range.</div>
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="effort-{{ setLog.id }}">Percezione dello sforzo</label>
+                                        <select class="form-select" id="effort-{{ setLog.id }}" name="perceivedEffort">
+                                            <option value="">-</option>
+                                            {% for perceivedEffort in perceivedEfforts %}
+                                                <option value="{{ perceivedEffort.value }}" {% if setLog.perceivedEffort == perceivedEffort %}selected{% endif %}>{{ perceivedEffort.label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="set-field-help">Quanto ti è costata la serie nel complesso.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="set-section set-note">
+                                <label class="form-label" for="notes-{{ setLog.id }}">Note</label>
+                                <textarea class="form-control" id="notes-{{ setLog.id }}" name="notes" rows="2" placeholder="Tecnica, fastidi, sensazioni, variante usata...">{{ setLog.notes }}</textarea>
+                            </div>
+
+                            <div class="set-log-actions">
+                                <button class="btn btn-primary" type="submit">
+                                    <span class="ti ti-device-floppy me-1"></span>
+                                    Salva serie
+                                </button>
+                            </div>
+                        </form>
+
+                        {% if not setLog.skipped %}
+                            <form method="post" action="{{ path('app_workout_session_skip_set', { sessionId: session.id, setId: setLog.id }) }}" class="skip-set-form">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md">
+                                        <label class="form-label small" for="skip-reason-{{ setLog.id }}">Motivo salto serie</label>
+                                        <input class="form-control" id="skip-reason-{{ setLog.id }}" name="skipReason" type="text" placeholder="es. poco tempo, dolore, macchina occupata">
+                                    </div>
+                                    <div class="col-12 col-md-auto">
+                                        <button class="btn btn-outline-warning w-100" type="submit">Salta serie</button>
+                                    </div>
+                                </div>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <div class="empty">
+        <p class="empty-title">Nessun esercizio nella sessione</p>
+        <p class="empty-subtitle text-secondary">La sessione è stata creata senza esercizi pianificati.</p>
+    </div>
+{% endfor %}
+{% endblock %}
+
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+
+        const openSetsButton = document.getElementById('js-toggle-open-sets-only');
+        if (openSetsButton) {
+            const storageKey = 'fitnessTracker.showOpenSetsOnly';
+
+            function applyOpenSetsMode(enabled) {
+                document.documentElement.classList.toggle('show-open-sets-only', enabled);
+                openSetsButton.textContent = enabled ? 'Mostra tutte le serie' : 'Mostra solo serie aperte';
+                openSetsButton.classList.toggle('btn-primary', enabled);
+                openSetsButton.classList.toggle('btn-outline-primary', !enabled);
+                window.localStorage.setItem(storageKey, enabled ? '1' : '0');
+            }
+
+            applyOpenSetsMode(window.localStorage.getItem(storageKey) === '1');
+
+            openSetsButton.addEventListener('click', function () {
+                applyOpenSetsMode(!document.documentElement.classList.contains('show-open-sets-only'));
+            });
+        }
+
+        document.addEventListener('click', function (event) {
+            const weightButton = event.target.closest('.js-copy-suggested-weight');
+            if (weightButton) {
+                copySuggestedValue(
+                    weightButton.dataset.targetInput,
+                    weightButton.dataset.weight ? weightButton.dataset.weight.replace('.', ',') : '',
+                    weightButton,
+                    'Peso copiato nel campo Peso (kg).'
+                );
+                return;
+            }
+
+            const restButton = event.target.closest('.js-copy-planned-rest');
+            if (restButton) {
+                copySuggestedValue(
+                    restButton.dataset.targetInput,
+                    restButton.dataset.rest || '',
+                    restButton,
+                    'Recupero copiato nel campo Recupero effettivo.'
+                );
+            }
+        });
+
+        function copySuggestedValue(targetInputId, value, button, message) {
+            if (!targetInputId || !value) {
+                return;
+            }
+
+            const input = document.getElementById(targetInputId);
+            if (!input) {
+                return;
+            }
+
+            input.value = value;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.focus();
+
+            const status = button.parentElement.querySelector('.set-suggestion-copy-status');
+            if (status) {
+                status.textContent = message;
+                window.setTimeout(function () {
+                    status.textContent = '';
+                }, 2500);
+            }
+        }
+    </script>
+{% endblock %}

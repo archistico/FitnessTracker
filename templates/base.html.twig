@@ -1,24 +1,267 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="it">
     <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
-
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
-
-        {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
-        {% if frankenphpHotReload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphpHotReload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
-        {% endif %}
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}FitnessTracker{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.1em%22 font-size=%2290%22>💪</text></svg>">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.4.0/dist/css/tabler.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css">
+        <style>
+            .app-metric-card .h2, .app-metric-card .h3 { line-height: 1; }
+            .app-mobile-card { border: 1px solid var(--tblr-border-color); border-radius: var(--tblr-border-radius-lg); background: var(--tblr-bg-surface); overflow: hidden; height: 100%; }
+            .app-mobile-card-header { display: flex; gap: .75rem; justify-content: space-between; align-items: flex-start; padding: .95rem 1rem; border-bottom: 1px solid var(--tblr-border-color); background: var(--tblr-bg-surface-secondary); }
+            .app-mobile-card-header > * { min-width: 0; }
+            .app-mobile-card-header .d-flex { min-width: 0; flex: 1 1 auto; }
+            .app-mobile-card-body { padding: 1rem; }
+            .app-mobile-card-footer { padding: .85rem 1rem; border-top: 1px solid var(--tblr-border-color); background: var(--tblr-bg-surface-secondary); }
+            .app-card-number { min-width: 2.6rem; height: 2.6rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; background: var(--tblr-primary-lt); color: var(--tblr-primary); font-size: 1.05rem; }
+            .app-info-grid { display: grid; grid-template-columns: 1fr; gap: .75rem; }
+            .app-info-item { border: 1px solid var(--tblr-border-color); border-radius: var(--tblr-border-radius); padding: .8rem; background: var(--tblr-bg-surface-secondary); }
+            .app-info-label { font-size: .7rem; font-weight: 750; text-transform: uppercase; letter-spacing: .045em; color: var(--tblr-secondary); margin-bottom: .15rem; }
+            .app-info-value { font-weight: 750; font-size: 1.02rem; overflow-wrap: anywhere; word-break: break-word; }
+            .app-info-help { font-size: .78rem; color: var(--tblr-secondary); margin-top: .25rem; line-height: 1.25; }
+            .app-section { border-top: 1px solid var(--tblr-border-color); padding-top: 1rem; margin-top: 1rem; }
+            .app-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+            .app-section-title { font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .045em; color: var(--tblr-secondary); margin-bottom: .65rem; }
+            .app-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+            .app-field-grid .form-label { font-size: .8rem; font-weight: 700; margin-bottom: .25rem; }
+            .app-field-grid .form-control, .app-field-grid .form-select, .app-touch-control { min-height: 3rem; font-size: 1.02rem; }
+            .app-action-grid { display: grid; gap: .75rem; min-width: 0; }
+            .app-action-grid > * { min-width: 0; }
+            .app-action-grid form { margin: 0; }
+            .app-action-grid .btn { min-height: 3rem; font-weight: 700; white-space: normal; overflow-wrap: anywhere; }
+            .app-danger-action { border-top: 1px dashed var(--tblr-border-color); padding-top: .75rem; margin-top: .15rem; }
+            .app-action-grid .app-danger-action { width: 100%; }
+            .app-description { line-height: 1.45; }
+            .app-trend-chart { display: grid; grid-template-columns: repeat(auto-fit, minmax(2.2rem, 1fr)); gap: .55rem; align-items: end; min-height: 10rem; }
+            .app-trend-column { min-width: 0; display: grid; grid-template-rows: auto 1fr auto; gap: .35rem; align-items: end; text-align: center; }
+            .app-trend-value { min-height: 1.1rem; font-size: .72rem; font-weight: 700; color: var(--tblr-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .app-trend-track { height: 7rem; display: flex; align-items: end; justify-content: center; border-bottom: 1px solid var(--tblr-border-color); }
+            .app-trend-fill { width: 100%; max-width: 2.25rem; min-height: .25rem; border-radius: var(--tblr-border-radius) var(--tblr-border-radius) 0 0; background: var(--tblr-primary); opacity: .82; }
+            .app-trend-label { font-size: .7rem; color: var(--tblr-secondary); white-space: nowrap; }
+            .card-title, .card-title a { overflow-wrap: anywhere; word-break: break-word; }
+            .badge { white-space: normal; text-align: center; line-height: 1.2; }
+            @media (min-width: 768px) {
+                .app-info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                .app-field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+                .app-action-grid { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+                .app-action-grid > a, .app-action-grid > form { flex: 1 1 10.5rem; }
+                .app-action-grid > .app-danger-action { flex-basis: 100%; }
+                .app-action-grid .btn { width: 100%; min-width: 0; }
+            }
+            @media (min-width: 1200px) {
+                .app-info-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            }
+            @media (max-width: 575.98px) {
+                .page-header .btn-list { width: 100%; }
+                .page-header .btn-list .btn, .page-header .btn-list form, .page-header .btn-list button { width: 100%; }
+                .page-header .col-auto { width: 100%; margin-top: .75rem; }
+                .app-mobile-card-header { flex-direction: column; align-items: stretch; }
+                .app-mobile-card-body { padding: .85rem; }
+                .app-field-grid { gap: .65rem; }
+                .app-field-grid .form-control, .app-field-grid .form-select, .app-touch-control { min-height: 3.15rem; }
+                .app-action-grid .btn { width: 100%; }
+                .app-mobile-full { width: 100%; }
+            }
+        </style>
+        {% block stylesheets %}{% endblock %}
     </head>
     <body>
-        {% block body %}{% endblock %}
+        <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.4.0/dist/js/tabler.min.js" defer></script>
+        <div class="page">
+            <header class="navbar navbar-expand-md d-print-none">
+                <div class="container-xl">
+                    <a class="navbar-brand" href="{{ path('app_dashboard') }}">
+                        <span class="me-2 ti ti-barbell"></span>
+                        FitnessTracker
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Apri menu">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbar-menu">
+                        <div class="navbar-nav">
+                            <a class="nav-link" href="{{ path('app_dashboard') }}">
+                                <span class="nav-link-icon ti ti-dashboard"></span>
+                                Dashboard
+                            </a>
+                            <a class="nav-link" href="{{ path('app_gym_equipment') }}">
+                                <span class="nav-link-icon ti ti-building-gym"></span>
+                                La mia palestra
+                            </a>
+                            <a class="nav-link" href="{{ path('app_equipment_index') }}">
+                                <span class="nav-link-icon ti ti-tools"></span>
+                                Attrezzature
+                            </a>
+                            <a class="nav-link" href="{{ path('app_exercise_index') }}">
+                                <span class="nav-link-icon ti ti-list-check"></span>
+                                Esercizi
+                            </a>
+                            <a class="nav-link" href="{{ path('app_workout_plan_index') }}">
+                                <span class="nav-link-icon ti ti-clipboard-list"></span>
+                                Schede
+                            </a>
+                            <a class="nav-link" href="{{ path('app_calibration_index') }}">
+                                <span class="nav-link-icon ti ti-adjustments"></span>
+                                Calibrazione
+                            </a>
+                            <a class="nav-link" href="{{ path('app_workout_session_index') }}">
+                                <span class="nav-link-icon ti ti-notebook"></span>
+                                Diario
+                            </a>
+                            <a class="nav-link" href="{{ path('app_statistics_index') }}">
+                                <span class="nav-link-icon ti ti-chart-bar"></span>
+                                Statistiche
+                            </a>
+                        </div>
+                    </div>
+                    <div class="navbar-nav flex-row order-md-last">
+                        <div class="nav-item">
+                            <span class="nav-link text-secondary">
+                                <span class="ti ti-user me-1"></span>
+                                {{ currentUser.name|default('Utente demo') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-wrapper">
+                <div class="page-header d-print-none">
+                    <div class="container-xl">
+                        <div class="row g-2 align-items-center">
+                            <div class="col">
+                                <h2 class="page-title">{% block page_title %}Dashboard{% endblock %}</h2>
+                                {% block page_subtitle %}{% endblock %}
+                            </div>
+                            <div class="col-auto ms-auto d-print-none">
+                                {% block page_actions %}{% endblock %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-body">
+                    <div class="container-xl">
+                        {% for label, messages in app.flashes %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ label }}" role="alert">{{ message }}</div>
+                            {% endfor %}
+                        {% endfor %}
+                        {% block body %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal modal-blur fade" id="app-confirm-modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-status bg-danger"></div>
+                    <div class="modal-body text-center py-4">
+                        <span class="ti ti-alert-triangle icon mb-2 text-danger" style="font-size: 2rem;"></span>
+                        <h3 id="app-confirm-modal-title">Conferma azione</h3>
+                        <div class="text-secondary" id="app-confirm-modal-message">Confermare questa operazione?</div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="w-100">
+                            <div class="row g-2">
+                                <div class="col">
+                                    <button type="button" class="btn w-100" data-bs-dismiss="modal">Annulla</button>
+                                </div>
+                                <div class="col">
+                                    <button type="button" class="btn btn-danger w-100" id="app-confirm-modal-submit">Conferma</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const slugify = function (value) {
+                    return value
+                        .toString()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .toLowerCase()
+                        .trim()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                };
+
+                document.querySelectorAll('[data-slug-source]').forEach(function (source) {
+                    const target = document.querySelector(source.dataset.slugSource);
+                    if (!target) {
+                        return;
+                    }
+
+                    let userEditedSlug = target.value.trim() !== '';
+                    target.addEventListener('input', function () {
+                        userEditedSlug = target.value.trim() !== '';
+                    });
+
+                    source.addEventListener('input', function () {
+                        if (userEditedSlug) {
+                            return;
+                        }
+
+                        target.value = slugify(source.value);
+                    });
+                });
+            });
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modalElement = document.getElementById('app-confirm-modal');
+                const titleElement = document.getElementById('app-confirm-modal-title');
+                const messageElement = document.getElementById('app-confirm-modal-message');
+                const submitButton = document.getElementById('app-confirm-modal-submit');
+                if (!modalElement || !titleElement || !messageElement || !submitButton || typeof bootstrap === 'undefined') {
+                    return;
+                }
+
+                const modal = new bootstrap.Modal(modalElement);
+                let pendingForm = null;
+
+                document.querySelectorAll('form[data-confirm-message]').forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (form.dataset.confirmed === '1') {
+                            return;
+                        }
+
+                        event.preventDefault();
+                        pendingForm = form;
+                        titleElement.textContent = form.dataset.confirmTitle || 'Conferma azione';
+                        messageElement.textContent = form.dataset.confirmMessage || 'Confermare questa operazione?';
+                        submitButton.textContent = form.dataset.confirmSubmitLabel || 'Conferma';
+                        modal.show();
+                    });
+                });
+
+                submitButton.addEventListener('click', function () {
+                    if (!pendingForm) {
+                        return;
+                    }
+
+                    pendingForm.dataset.confirmed = '1';
+                    modal.hide();
+                    pendingForm.requestSubmit();
+                });
+
+                modalElement.addEventListener('hidden.bs.modal', function () {
+                    if (pendingForm && pendingForm.dataset.confirmed !== '1') {
+                        pendingForm = null;
+                    }
+                    titleElement.textContent = 'Conferma azione';
+                    messageElement.textContent = 'Confermare questa operazione?';
+                    submitButton.textContent = 'Conferma';
+                });
+            });
+        </script>
+        {% block javascripts %}{% endblock %}
     </body>
 </html>
