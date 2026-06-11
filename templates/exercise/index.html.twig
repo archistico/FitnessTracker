@@ -6,17 +6,93 @@
     <div class="text-secondary mt-1">Archivio esercizi con modalità di registrazione, muscoli e attrezzatura principale.</div>
 {% endblock %}
 {% block page_actions %}
-    <div class="btn-list">
-        <a href="{{ path('app_exercise_new') }}" class="btn btn-primary">
-            <span class="ti ti-plus me-1"></span>
-            Nuovo esercizio
-        </a>
-        <a href="{{ path('app_exercise_index') }}" class="btn {{ not availableOnly ? 'btn-secondary' : 'btn-outline-secondary' }}">Tutti</a>
-        <a href="{{ path('app_exercise_index', {available: 1}) }}" class="btn {{ availableOnly ? 'btn-secondary' : 'btn-outline-secondary' }}">Solo disponibili</a>
-    </div>
+    <a href="{{ path('app_exercise_new') }}" class="btn btn-primary">
+        <span class="ti ti-plus me-1"></span>
+        Nuovo esercizio
+    </a>
 {% endblock %}
 
 {% block body %}
+<div class="row row-cards mb-3">
+    <div class="col-12">
+        <form method="get" action="{{ path('app_exercise_index') }}" class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-filter"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Filtri esercizi</h3>
+                        <div class="text-secondary small">
+                            Risultati: <strong>{{ exercises|length }}</strong> su <strong>{{ exerciseTotalCount }}</strong>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <div class="app-field-grid">
+                    <div>
+                        <label class="form-label" for="q">Cerca</label>
+                        <input class="form-control" id="q" name="q" type="search" value="{{ filters.q }}" placeholder="Nome, muscolo, attrezzatura...">
+                    </div>
+                    <div>
+                        <label class="form-label" for="muscle">Muscolo</label>
+                        <select class="form-select" id="muscle" name="muscle">
+                            <option value="">Tutti i muscoli</option>
+                            {% for muscle in muscleOptions %}
+                                <option value="{{ muscle }}" {% if filters.muscle == muscle %}selected{% endif %}>{{ muscle }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="equipment">Attrezzatura</label>
+                        <select class="form-select" id="equipment" name="equipment">
+                            <option value="">Tutte</option>
+                            {% for equipment in equipmentList %}
+                                <option value="{{ equipment.slug }}" {% if filters.equipmentSlug == equipment.slug %}selected{% endif %}>{{ equipment.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="trackingMode">Tracking</label>
+                        <select class="form-select" id="trackingMode" name="trackingMode">
+                            <option value="">Tutti</option>
+                            {% for trackingMode in trackingModes %}
+                                <option value="{{ trackingMode.value }}" {% if filters.trackingMode == trackingMode.value %}selected{% endif %}>{{ trackingMode.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="exerciseType">Tipo esercizio</label>
+                        <select class="form-select" id="exerciseType" name="exerciseType">
+                            <option value="">Tutti</option>
+                            {% for exerciseType in exerciseTypes %}
+                                <option value="{{ exerciseType.value }}" {% if filters.exerciseType == exerciseType.value %}selected{% endif %}>{{ exerciseType.value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="fundamental">Fondamentale</label>
+                        <select class="form-select" id="fundamental" name="fundamental">
+                            <option value="">Tutti</option>
+                            <option value="yes" {% if filters.fundamental == 'yes' %}selected{% endif %}>Solo fondamentali</option>
+                            <option value="no" {% if filters.fundamental == 'no' %}selected{% endif %}>Solo complementari</option>
+                        </select>
+                    </div>
+                    <div class="d-flex align-items-end">
+                        <label class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="available" value="1" {% if filters.availableOnly %}checked{% endif %}>
+                            <span class="form-check-label">Solo disponibili nella mia palestra</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-footer app-action-grid">
+                <button class="btn btn-primary" type="submit">Applica filtri</button>
+                <a class="btn btn-outline-secondary" href="{{ path('app_exercise_index') }}">Azzera filtri</a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="row row-cards">
     {% for exercise in exercises %}
         {% set equipment = exercise.defaultEquipment %}
@@ -60,6 +136,16 @@
                             <div class="app-info-value">{{ exercise.fundamental ? 'Sì' : 'No' }}</div>
                         </div>
                     </div>
+                    {% if exercise.primaryMuscles|length > 0 %}
+                        <div class="app-section">
+                            <div class="app-section-title">Muscoli principali</div>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for muscle in exercise.primaryMuscles %}
+                                    <span class="badge bg-blue-lt">{{ muscle }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
                     <div class="app-section">
                         <div class="app-section-title">Descrizione</div>
                         <p class="app-description text-secondary mb-0">{{ exercise.description }}</p>

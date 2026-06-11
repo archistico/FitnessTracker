@@ -155,10 +155,17 @@
                 <div class="app-section">
                     <div class="app-section-title">Esercizio e progressione</div>
                     <div class="mb-3">
+                        <label class="form-label" for="exerciseSearch">Cerca esercizio</label>
+                        <input class="form-control app-touch-control" id="exerciseSearch" type="search" placeholder="Scrivi nome, muscolo o attrezzatura..." data-exercise-select-filter="#exerciseId">
+                        <div class="app-info-help">Filtra l'elenco sotto senza ricaricare la pagina. Utile con cataloghi grandi.</div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label" for="exerciseId">Esercizio</label>
                         <select class="form-select app-touch-control" id="exerciseId" name="exerciseId" required>
                             {% for exercise in exercises %}
-                                <option value="{{ exercise.id }}">{{ exercise.name }} · {{ exercise.trackingMode.label }}</option>
+                                {% set equipment = exercise.defaultEquipment %}
+                                {% set searchText = exercise.name ~ ' ' ~ exercise.trackingMode.label ~ ' ' ~ exercise.description ~ ' ' ~ exercise.primaryMuscles|join(' ') ~ ' ' ~ exercise.secondaryMuscles|join(' ') ~ ' ' ~ (equipment ? equipment.name : '') %}
+                                <option value="{{ exercise.id }}" data-search="{{ searchText|lower }}">{{ exercise.name }} · {{ exercise.trackingMode.label }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -238,4 +245,44 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-exercise-select-filter]').forEach(function (input) {
+                const select = document.querySelector(input.dataset.exerciseSelectFilter);
+                if (!select) {
+                    return;
+                }
+
+                const options = Array.from(select.options).map(function (option) {
+                    return {
+                        element: option,
+                        text: (option.dataset.search || option.textContent || '').toLowerCase(),
+                    };
+                });
+
+                input.addEventListener('input', function () {
+                    const query = input.value.trim().toLowerCase();
+                    let firstVisible = null;
+
+                    options.forEach(function (item) {
+                        const visible = query === '' || item.text.includes(query);
+                        item.element.hidden = !visible;
+                        item.element.disabled = !visible;
+
+                        if (visible && firstVisible === null) {
+                            firstVisible = item.element;
+                        }
+                    });
+
+                    if (select.selectedOptions.length === 0 || select.selectedOptions[0].disabled) {
+                        select.value = firstVisible ? firstVisible.value : '';
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}

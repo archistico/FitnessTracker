@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Equipment;
 use App\Enum\EquipmentType;
 use App\Service\CurrentUserProvider;
+use App\Service\CatalogListFilter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -17,13 +18,23 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 final class EquipmentController extends AbstractController
 {
     #[Route('', name: 'app_equipment_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager, CurrentUserProvider $currentUserProvider): Response
-    {
+    public function index(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        CurrentUserProvider $currentUserProvider,
+        CatalogListFilter $catalogListFilter,
+    ): Response {
+        /** @var list<Equipment> $equipment */
         $equipment = $entityManager->getRepository(Equipment::class)->findBy([], ['name' => 'ASC']);
+        $filters = $this->buildEquipmentFilters($request);
+        $filteredEquipment = $catalogListFilter->filterEquipment($equipment, $filters);
 
         return $this->render('equipment/index.html.twig', [
             'currentUser' => $currentUserProvider->getUser(),
-            'equipmentList' => $equipment,
+            'equipmentList' => $filteredEquipment,
+            'equipmentTotalCount' => count($equipment),
+            'equipmentTypes' => EquipmentType::cases(),
+            'filters' => $filters,
         ]);
     }
 
@@ -134,6 +145,27 @@ final class EquipmentController extends AbstractController
             'currentUser' => $currentUserProvider->getUser(),
             'equipment' => $equipment,
         ]);
+    }
+
+
+    /** @return array{q:string,type:string,kind:string} */
+    private function buildEquipmentFilters(Request $request): array
+    {
+        $type = trim((string) $request->query->get('type'));
+        if (EquipmentType::tryFrom($type) === null) {
+            $type = '';
+        }
+
+        $kind = trim((string) $request->query->get('kind'));
+        if (!in_array($kind, ['machine', 'tool'], true)) {
+            $kind = '';
+        }
+
+        return [
+            'q' => trim((string) $request->query->get('q')),
+            'type' => $type,
+            'kind' => $kind,
+        ];
     }
 
     /** @return list<string> */

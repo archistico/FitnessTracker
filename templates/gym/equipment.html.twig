@@ -3,7 +3,7 @@
 {% block title %}La mia palestra · FitnessTracker{% endblock %}
 {% block page_title %}La mia palestra{% endblock %}
 {% block page_subtitle %}
-    <div class="text-secondary mt-1">Seleziona quali strumenti sono davvero disponibili. I futuri consigli useranno questa configurazione.</div>
+    <div class="text-secondary mt-1">Mostra tutto il catalogo attrezzature. Disattiva solo quello che non è presente nella tua palestra.</div>
 {% endblock %}
 
 {% block body %}
@@ -16,6 +16,11 @@
                     <div>
                         <h3 class="card-title mb-1">{{ gymProfile.name }}</h3>
                         <div class="text-secondary small">{{ gymProfile.notes ?: 'Configura cosa è presente nella palestra.' }}</div>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <span class="badge bg-blue-lt">{{ items|length }} attrezzature totali</span>
+                            <span class="badge bg-green-lt">{{ availableCount }} presenti</span>
+                            <span class="badge bg-red-lt">{{ unavailableCount }} non presenti</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -36,9 +41,9 @@
                         </div>
                     </div>
                     {% if item.available %}
-                        <span class="badge bg-green-lt">disponibile</span>
+                        <span class="badge bg-green-lt">presente</span>
                     {% else %}
-                        <span class="badge bg-red-lt">non disponibile</span>
+                        <span class="badge bg-red-lt">non presente</span>
                     {% endif %}
                 </div>
                 <div class="app-mobile-card-body">
@@ -48,7 +53,7 @@
                     <form method="post" action="{{ path('app_gym_equipment_toggle', {id: item.id}) }}" class="w-100">
                         <input type="hidden" name="_token" value="{{ csrf_token('toggle_gym_equipment_' ~ item.id) }}">
                         <button type="submit" class="btn w-100 {{ item.available ? 'btn-outline-danger' : 'btn-outline-success' }}">
-                            {{ item.available ? 'Disattiva dalla palestra' : 'Attiva in palestra' }}
+                            {{ item.available ? 'Segna come non presente' : 'Segna come presente' }}
                         </button>
                     </form>
                 </div>
@@ -58,7 +63,7 @@
         <div class="col-12">
             <div class="empty">
                 <p class="empty-title">Nessuna attrezzatura collegata alla palestra</p>
-                <p class="empty-subtitle text-secondary">Esegui le fixture per creare la configurazione iniziale.</p>
+                <p class="empty-subtitle text-secondary">Aggiungi attrezzature al catalogo o esegui il comando di seed del catalogo.</p>
             </div>
         </div>
     {% endfor %}

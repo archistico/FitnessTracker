@@ -5,8 +5,8 @@ namespace App\Service;
 final class ExerciseTrendBuilder
 {
     /**
-     * @param list<array{date:\DateTimeImmutable,sessionId:?int,planName:string,sessionType:string,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,averageRir:?float}> $sessionSummaries
-     * @return array{points:list<array{date:\DateTimeImmutable,dateLabel:string,sessionId:?int,planName:string,sessionType:string,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,averageRir:?float,bestWeightPercent:int,volumePercent:int,bestEstimatedPercent:int,rirPercent:int}>,hasEnoughData:bool,bestWeightChange:array{label:string,class:string},volumeChange:array{label:string,class:string},bestEstimatedChange:array{label:string,class:string}}
+     * @param list<array{date:\DateTimeImmutable,sessionId:?int,planName:string,sessionType:string,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,bestEstimatedReliability:?string,averageRir:?float}> $sessionSummaries
+     * @return array{points:list<array{date:\DateTimeImmutable,dateLabel:string,sessionId:?int,planName:string,sessionType:string,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,bestEstimatedReliability:?string,averageRir:?float,bestWeightPercent:int,volumePercent:int,bestEstimatedPercent:int,rirPercent:int}>,hasEnoughData:bool,bestWeightChange:array{label:string,class:string},volumeChange:array{label:string,class:string},bestEstimatedChange:array{label:string,class:string}}
      */
     public function build(array $sessionSummaries, int $maxPoints = 8): array
     {
@@ -29,6 +29,7 @@ final class ExerciseTrendBuilder
                 'totalVolume' => $session['totalVolume'],
                 'bestWeightKg' => $session['bestWeightKg'],
                 'bestEstimatedStrengthKg' => $session['bestEstimatedStrengthKg'],
+                'bestEstimatedReliability' => $session['bestEstimatedReliability'] ?? null,
                 'averageRir' => $session['averageRir'],
                 'bestWeightPercent' => 0,
                 'volumePercent' => 0,
@@ -58,7 +59,7 @@ final class ExerciseTrendBuilder
             'hasEnoughData' => count($normalizedPoints) >= 2,
             'bestWeightChange' => $this->describeChange($previous['bestWeightKg'] ?? null, $latest['bestWeightKg'] ?? null, 'kg', 1),
             'volumeChange' => $this->describeChange($previous['totalVolume'] ?? null, $latest['totalVolume'] ?? null, 'kg', 0),
-            'bestEstimatedChange' => $this->describeChange($previous['bestEstimatedStrengthKg'] ?? null, $latest['bestEstimatedStrengthKg'] ?? null, 'kg stimati', 1),
+            'bestEstimatedChange' => $this->describeChange($previous['bestEstimatedStrengthKg'] ?? null, $latest['bestEstimatedStrengthKg'] ?? null, 'kg 1RM stimato', 1),
         ];
     }
 

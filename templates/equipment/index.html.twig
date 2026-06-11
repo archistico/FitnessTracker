@@ -13,6 +13,53 @@
 {% endblock %}
 
 {% block body %}
+<div class="row row-cards mb-3">
+    <div class="col-12">
+        <form method="get" action="{{ path('app_equipment_index') }}" class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-filter"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Filtri attrezzature</h3>
+                        <div class="text-secondary small">
+                            Risultati: <strong>{{ equipmentList|length }}</strong> su <strong>{{ equipmentTotalCount }}</strong>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                <div class="app-field-grid">
+                    <div>
+                        <label class="form-label" for="q">Cerca</label>
+                        <input class="form-control" id="q" name="q" type="search" value="{{ filters.q }}" placeholder="Nome, descrizione, tipo...">
+                    </div>
+                    <div>
+                        <label class="form-label" for="type">Tipo</label>
+                        <select class="form-select" id="type" name="type">
+                            <option value="">Tutti i tipi</option>
+                            {% for equipmentType in equipmentTypes %}
+                                <option value="{{ equipmentType.value }}" {% if filters.type == equipmentType.value %}selected{% endif %}>{{ equipmentType.value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="kind">Macchina / attrezzo</label>
+                        <select class="form-select" id="kind" name="kind">
+                            <option value="">Tutto</option>
+                            <option value="machine" {% if filters.kind == 'machine' %}selected{% endif %}>Solo macchine</option>
+                            <option value="tool" {% if filters.kind == 'tool' %}selected{% endif %}>Solo attrezzi</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-footer app-action-grid">
+                <button class="btn btn-primary" type="submit">Applica filtri</button>
+                <a class="btn btn-outline-secondary" href="{{ path('app_equipment_index') }}">Azzera filtri</a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="row row-cards">
     {% for equipment in equipmentList %}
         <div class="col-md-6">
@@ -45,8 +92,8 @@
     {% else %}
         <div class="col-12">
             <div class="empty">
-                <p class="empty-title">Nessuna attrezzatura caricata</p>
-                <p class="empty-subtitle text-secondary">Esegui le fixture per caricare il catalogo iniziale.</p>
+                <p class="empty-title">Nessuna attrezzatura trovata</p>
+                <p class="empty-subtitle text-secondary">Nessuna attrezzatura corrisponde ai filtri correnti.</p>
             </div>
         </div>
     {% endfor %}

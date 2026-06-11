@@ -34,6 +34,10 @@ class AppFixtures extends Fixture
 
         $equipmentBySlug = [];
         foreach ($this->equipmentSeed() as $item) {
+            if (isset($equipmentBySlug[$item['slug']])) {
+                continue;
+            }
+
             $equipment = (new Equipment())
                 ->setName($item['name'])
                 ->setSlug($item['slug'])
@@ -53,6 +57,10 @@ class AppFixtures extends Fixture
 
         $exerciseBySlug = [];
         foreach ($this->exerciseSeed() as $item) {
+            if (isset($exerciseBySlug[$item['slug']])) {
+                continue;
+            }
+
             $exercise = (new Exercise())
                 ->setName($item['name'])
                 ->setSlug($item['slug'])
@@ -152,6 +160,7 @@ class AppFixtures extends Fixture
             ['name' => 'Cyclette', 'slug' => 'cyclette', 'type' => EquipmentType::Cardio, 'description' => 'Macchina cardio a pedalata, utile per riscaldamento e lavoro aerobico.', 'usage' => 'Regolare sella e resistenza, registrando durata e intensità.', 'isMachine' => true],
             ['name' => 'Vogatore', 'slug' => 'vogatore', 'type' => EquipmentType::Cardio, 'description' => 'Attrezzo utile per lavoro cardiovascolare e preparazione atletica, con forte coinvolgimento della catena posteriore.', 'usage' => 'Coordinare spinta di gambe, estensione del busto e tirata delle braccia.', 'isMachine' => true],
             ['name' => 'Gradino / box', 'slug' => 'gradino-box', 'type' => EquipmentType::Accessory, 'description' => 'Supporto usato per step-up, salite e varianti a corpo libero.', 'usage' => 'Scegliere un’altezza stabile e compatibile con il controllo del movimento.', 'isMachine' => false],
+            ...FitnessCatalog::equipmentSeed(),
         ];
     }
 
@@ -172,6 +181,7 @@ class AppFixtures extends Fixture
             ['name' => 'Cyclette', 'slug' => 'cyclette', 'description' => 'Lavoro cardio a pedalata, utile anche come riscaldamento iniziale.', 'instructions' => 'Regolare sella e resistenza. Registrare durata, livello e percezione dello sforzo.', 'primaryMuscles' => ['cardio'], 'secondaryMuscles' => ['quadricipiti'], 'trackingMode' => ExerciseTrackingMode::CardioMachine, 'exerciseType' => ExerciseType::Cardio, 'equipment' => 'cyclette', 'incrementKg' => 0.0, 'isFundamental' => false],
             ['name' => 'Addominali a terra', 'slug' => 'addominali-a-terra', 'description' => 'Esercizio a corpo libero per il core, registrato principalmente a ripetizioni.', 'instructions' => 'Eseguire reps controllate evitando slanci. Annotare eventuale fastidio lombare.', 'primaryMuscles' => ['addome'], 'secondaryMuscles' => [], 'trackingMode' => ExerciseTrackingMode::RepsOnly, 'exerciseType' => ExerciseType::Bodyweight, 'equipment' => 'corpo-libero', 'incrementKg' => 0.0, 'isFundamental' => false],
             ['name' => 'Step sul gradino', 'slug' => 'step-sul-gradino', 'description' => 'Esercizio a corpo libero o con sovraccarico per arti inferiori.', 'instructions' => 'Salire sul gradino in modo controllato, stabilizzare il ginocchio e scendere senza cadute o rimbalzi.', 'primaryMuscles' => ['quadricipiti', 'glutei'], 'secondaryMuscles' => ['polpacci'], 'trackingMode' => ExerciseTrackingMode::RepsOnly, 'exerciseType' => ExerciseType::Accessory, 'equipment' => 'gradino-box', 'incrementKg' => 0.0, 'isFundamental' => false],
+            ...FitnessCatalog::exerciseSeed(),
         ];
     }
 }

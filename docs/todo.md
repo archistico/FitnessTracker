@@ -307,3 +307,39 @@ Nel diario allenamenti le etichette dei campi devono evitare abbreviazioni quand
 - Verificare visivamente il menu compatto su desktop, tablet e mobile.
 - Valutare stati attivi per evidenziare anche il gruppo aperto, ad esempio Palestra quando si è in Attrezzature o Esercizi.
 - Valutare in futuro una voce Profilo/Utente dedicata se l'area utente crescerà oltre il semplice nome demo.
+
+## Todo dopo Step 34A
+
+- Valutare una guida breve dentro l'app per spiegare RM reale, 1RM stimato, RIR e cedimento tecnico.
+- Valutare una gestione esplicita delle tecniche avanzate: drop set, rest-pause, super set, stripping e metodo 100 ripetizioni.
+- Valutare in futuro campi opzionali per tempo di esecuzione/TUT, senza usarli come base automatica della progressione.
+- Collegare il 1RM stimato prudente all'aggiornamento assistito dei profili carico.
+
+## Todo dopo Step 34B
+
+- Valutare una guida breve dentro l'app per spiegare RM reale, 1RM stimato, RIR, ripetizioni equivalenti e cedimento tecnico.
+- Valutare una gestione esplicita delle tecniche avanzate: drop set, rest-pause, super set, stripping e metodo 100 ripetizioni.
+- Valutare in futuro campi opzionali per tempo di esecuzione/TUT, senza usarli come base automatica della progressione.
+- Collegare il 1RM stimato prudente all'aggiornamento assistito dei profili carico.
+
+## Todo dopo Step 35A
+
+- Eseguire `php bin/console app:catalog:seed` su un database di sviluppo già popolato e verificare che aggiorni il catalogo senza duplicare gli slug.
+- Verificare visivamente le liste Attrezzature ed Esercizi con il catalogo esteso, perché il numero di righe è cresciuto molto.
+- Aggiungere filtri e ricerca più efficaci per Esercizi: gruppo muscolare, tipo, tracking mode, attrezzatura disponibile.
+- Aggiungere filtri e ricerca più efficaci per Attrezzature: tipo, macchina/non macchina, disponibile nella mia palestra.
+- Valutare una paginazione leggera o una vista a gruppi se le liste diventano troppo lunghe.
+
+## Todo dopo Step 35B
+
+- Verificare visivamente i filtri catalogo su smartphone, soprattutto il pannello Esercizi che ora contiene molti campi.
+- Valutare una vista a gruppi per Esercizi, ad esempio per muscolo principale, se l'elenco resta troppo lungo anche con i filtri.
+- Valutare una ricerca analoga anche nelle pagine Calibrazione, se la scelta esercizio diventa scomoda con il catalogo esteso.
+- Valutare filtri sulla pagina `La mia palestra`, per attivare/disattivare rapidamente molte attrezzature dopo il seed esteso.
+
+## Todo dopo Step 35C
+
+- Verificare visivamente `La mia palestra` con catalogo completo e molti elementi.
+- Aggiungere filtri/ricerca anche in `La mia palestra`, almeno per testo, tipo, presente/non presente e macchina/attrezzo.
+- Valutare azioni rapide di massa: segna tutto presente, segna tutto non presente, mostra solo non presenti.
+- Verificare che il filtro `solo disponibili nella mia palestra` negli esercizi rifletta correttamente le attrezzature disattivate.

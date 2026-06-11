@@ -27,7 +27,7 @@ final class ExerciseTrendBuilderTest extends TestCase
         self::assertSame(100, $trend['points'][1]['bestEstimatedPercent']);
         self::assertSame('+2,5 kg rispetto alla sessione precedente.', $trend['bestWeightChange']['label']);
         self::assertSame('+100 kg rispetto alla sessione precedente.', $trend['volumeChange']['label']);
-        self::assertSame('+3,5 kg stimati rispetto alla sessione precedente.', $trend['bestEstimatedChange']['label']);
+        self::assertSame('+3,5 kg 1RM stimato rispetto alla sessione precedente.', $trend['bestEstimatedChange']['label']);
     }
 
     public function testBuildReportsMissingTrendWithSingleSession(): void
@@ -44,7 +44,7 @@ final class ExerciseTrendBuilderTest extends TestCase
         self::assertSame('Servono almeno due sessioni con questo dato.', $trend['bestEstimatedChange']['label']);
     }
 
-    /** @return array{date:\DateTimeImmutable,sessionId:?int,planName:string,sessionType:string,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,averageRir:?float} */
+    /** @return array{date:\DateTimeImmutable,sessionId:?int,planName:string,sessionType:string,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,bestEstimatedReliability:?string,averageRir:?float} */
     private function sessionSummary(string $date, int $sessionId, ?float $bestWeightKg, ?float $bestEstimatedStrengthKg, float $totalVolume): array
     {
         return [
@@ -57,6 +57,7 @@ final class ExerciseTrendBuilderTest extends TestCase
             'totalVolume' => $totalVolume,
             'bestWeightKg' => $bestWeightKg,
             'bestEstimatedStrengthKg' => $bestEstimatedStrengthKg,
+            'bestEstimatedReliability' => null,
             'averageRir' => 2.0,
         ];
     }

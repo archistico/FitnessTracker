@@ -66,7 +66,7 @@ final class ExerciseWeeklySummaryBuilderTest extends TestCase
         self::assertSame([], $trend['weeks']);
     }
 
-    /** @return array{date:\DateTimeImmutable,sessionId:?int,planName:string,sessionType:string,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,averageRir:?float} */
+    /** @return array{date:\DateTimeImmutable,sessionId:?int,planName:string,sessionType:string,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,bestEstimatedReliability:?string,averageRir:?float} */
     private function sessionSummary(string $date, int $sessionId, ?float $bestWeightKg, ?float $bestEstimatedStrengthKg, float $totalVolume, ?float $averageRir): array
     {
         return [
@@ -79,6 +79,7 @@ final class ExerciseWeeklySummaryBuilderTest extends TestCase
             'totalVolume' => $totalVolume,
             'bestWeightKg' => $bestWeightKg,
             'bestEstimatedStrengthKg' => $bestEstimatedStrengthKg,
+            'bestEstimatedReliability' => null,
             'averageRir' => $averageRir,
         ];
     }

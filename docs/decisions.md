@@ -157,3 +157,33 @@ Il RIR medio settimanale è ponderato sul numero di serie della sessione, non ca
 La barra principale deve rimanere una navigazione di primo livello, non l'elenco completo di tutte le pagine operative. Per questo le voci di catalogo e configurazione sono state raggruppate sotto `Palestra`, mentre le voci legate alla pratica dell'allenamento sono state raggruppate sotto `Allenamento`. Dashboard e Statistiche restano link diretti perché sono viste trasversali e frequentemente consultate.
 
 La scelta evita soluzioni fragili come ridurre il font, lasciare andare il menu a capo o aggiungere una sidebar prematura. Se il numero di funzioni crescerà molto, la stessa logica potrà essere estesa con altri gruppi senza cambiare le rotte esistenti.
+
+## Decisione Step 34A - 1RM stimato prudente
+
+Il `1RM stimato` deve rimanere una metrica derivata e prudente, non un massimale reale. La formula Epley continua a essere usata perché semplice e leggibile, ma viene applicata solo entro limiti sensati: fino a 15 ripetizioni equivalenti la stima è considerata standard, oltre 15 e fino a 20 viene mostrata come indicativa, oltre 20 non alimenta il miglior valore.
+
+Le ripetizioni equivalenti includono il RIR positivo, limitato a un massimo di 5 ripetizioni aggiuntive. Questa scelta evita che serie metaboliche o metodi ad altissime ripetizioni, come lavori da 70-100 ripetizioni, falsino le statistiche di forza. Le serie escluse restano comunque visibili nel diario e nelle tabelle, ma non concorrono al miglior `1RM stimato`.
+
+## Decisione Step 34B - qualità visibile delle stime
+
+La qualità del `1RM stimato` deve essere visibile nella UI, non nascosta solo nel codice. Per questo la stessa regola usata dal calcolatore produce uno stato esplicito: `standard` entro la soglia affidabile, `indicative` quando le ripetizioni equivalenti sono alte ma ancora utilizzabili, `excluded` quando la serie è troppo lunga per contribuire al miglior 1RM stimato.
+
+Il conteggio delle stime è derivato al momento dalle serie filtrate, senza nuova persistenza. Questa scelta mantiene il dato sempre coerente con periodo e tipo sessione selezionati e non vincola il progetto a una formula definitiva.
+
+## Decisione Step 35A - catalogo seed diretto senza nuova UI
+
+Per caricare velocemente l'elenco esteso di attrezzature ed esercizi è stato scelto un catalogo PHP seed, non una nuova interfaccia di import. La priorità è avere subito dati pronti in ambiente demo/sviluppo senza cambiare lo schema database e senza introdurre parsing runtime di file Markdown. Per i database già avviati è stato aggiunto il comando `app:catalog:seed`, che fa upsert per slug e non richiede di svuotare il database.
+
+Gli slug già presenti nei seed storici restano prioritari. Il nuovo catalogo viene aggiunto dopo, ma `AppFixtures` salta gli elementi duplicati in base allo slug. Questa scelta conserva le schede demo esistenti, evita violazioni di unicità e permette di ampliare progressivamente il catalogo senza rompere riferimenti già usati da schede, diario o statistiche.
+
+## Decisione Step 35B - filtri in memoria prima di query builder dedicate
+
+Per il catalogo attuale i filtri vengono applicati in memoria tramite `CatalogListFilter`, partendo dagli elenchi Doctrine già ordinati. La scelta è intenzionale: con circa 90 attrezzature e 100 esercizi non serve ancora introdurre query builder, paginazione server-side o una tabella di categorie separata. Il vantaggio è mantenere la logica testabile, semplice e riutilizzabile anche nel dettaglio scheda.
+
+Se il catalogo crescerà molto oltre questa scala, la stessa semantica dei filtri potrà essere spostata nei repository senza cambiare la UI.
+
+## Decisione Step 35C - La mia palestra come matrice completa del catalogo
+
+`La mia palestra` non deve essere un elenco parziale delle sole attrezzature già presenti nella tabella ponte. Deve invece mostrare tutte le attrezzature del catalogo e usare `GymEquipment.isAvailable` come stato di presenza/non presenza. Questa scelta evita ambiguità dopo import o seed del catalogo: se una nuova attrezzatura entra in `Equipment`, deve comparire nella configurazione palestra.
+
+I collegamenti mancanti vengono creati come presenti di default. È coerente con il flusso già indicato nella UI: l'utente parte dal catalogo completo e disattiva ciò che non esiste nella propria palestra. La sincronizzazione non richiede migration perché sfrutta la relazione esistente tra `GymProfile` ed `Equipment`.

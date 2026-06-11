@@ -7,7 +7,7 @@ use App\Entity\Exercise;
 use App\Entity\GymEquipment;
 use App\Enum\ExerciseTrackingMode;
 use App\Enum\ExerciseType;
-use App\Service\AvailableExerciseFilter;
+use App\Service\CatalogListFilter;
 use App\Service\CurrentUserProvider;
 use App\Service\GymProfileProvider;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
@@ -28,20 +28,28 @@ final class ExerciseController extends AbstractController
         EntityManagerInterface $entityManager,
         CurrentUserProvider $currentUserProvider,
         GymProfileProvider $gymProfileProvider,
-        AvailableExerciseFilter $availableExerciseFilter,
+        CatalogListFilter $catalogListFilter,
     ): Response {
         /** @var list<Exercise> $exercises */
         $exercises = $entityManager->getRepository(Exercise::class)->findBy([], ['name' => 'ASC']);
-        $availableOnly = $request->query->getBoolean('available');
+        /** @var list<Equipment> $equipmentList */
+        $equipmentList = $entityManager->getRepository(Equipment::class)->findBy([], ['name' => 'ASC']);
+        $filters = $this->buildExerciseFilters($request);
 
         $availableEquipmentSlugs = $this->getAvailableEquipmentSlugs($entityManager, $gymProfileProvider);
-        $filteredExercises = $availableExerciseFilter->filter($exercises, $availableEquipmentSlugs, $availableOnly);
+        $filteredExercises = $catalogListFilter->filterExercises($exercises, $availableEquipmentSlugs, $filters);
 
         return $this->render('exercise/index.html.twig', [
             'currentUser' => $currentUserProvider->getUser(),
             'exercises' => $filteredExercises,
-            'availableOnly' => $availableOnly,
+            'exerciseTotalCount' => count($exercises),
+            'availableOnly' => $filters['availableOnly'],
             'availableEquipmentSlugs' => $availableEquipmentSlugs,
+            'filters' => $filters,
+            'trackingModes' => ExerciseTrackingMode::cases(),
+            'exerciseTypes' => ExerciseType::cases(),
+            'equipmentList' => $equipmentList,
+            'muscleOptions' => $catalogListFilter->collectMuscleOptions($exercises),
         ]);
     }
 
@@ -150,6 +158,36 @@ final class ExerciseController extends AbstractController
             'exercise' => $exercise,
             'isAvailable' => $isAvailable,
         ]);
+    }
+
+
+    /** @return array{q:string,availableOnly:bool,trackingMode:string,exerciseType:string,muscle:string,equipmentSlug:string,fundamental:string} */
+    private function buildExerciseFilters(Request $request): array
+    {
+        $trackingMode = trim((string) $request->query->get('trackingMode'));
+        if (ExerciseTrackingMode::tryFrom($trackingMode) === null) {
+            $trackingMode = '';
+        }
+
+        $exerciseType = trim((string) $request->query->get('exerciseType'));
+        if (ExerciseType::tryFrom($exerciseType) === null) {
+            $exerciseType = '';
+        }
+
+        $fundamental = trim((string) $request->query->get('fundamental'));
+        if (!in_array($fundamental, ['yes', 'no'], true)) {
+            $fundamental = '';
+        }
+
+        return [
+            'q' => trim((string) $request->query->get('q')),
+            'availableOnly' => $request->query->getBoolean('available'),
+            'trackingMode' => $trackingMode,
+            'exerciseType' => $exerciseType,
+            'muscle' => trim((string) $request->query->get('muscle')),
+            'equipmentSlug' => trim((string) $request->query->get('equipment')),
+            'fundamental' => $fundamental,
+        ];
     }
 
     private function renderExerciseForm(

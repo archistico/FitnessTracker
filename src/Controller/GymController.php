@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\GymEquipment;
 use App\Service\CurrentUserProvider;
+use App\Service\GymEquipmentCatalogSynchronizer;
 use App\Service\GymProfileProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,19 +19,19 @@ final class GymController extends AbstractController
     #[Route('/equipment', name: 'app_gym_equipment', methods: ['GET'])]
     public function equipment(
         GymProfileProvider $gymProfileProvider,
-        EntityManagerInterface $entityManager,
         CurrentUserProvider $currentUserProvider,
+        GymEquipmentCatalogSynchronizer $gymEquipmentCatalogSynchronizer,
     ): Response {
         $gymProfile = $gymProfileProvider->getCurrentGym();
-        $items = $entityManager->getRepository(GymEquipment::class)->findBy(
-            ['gymProfile' => $gymProfile],
-            ['id' => 'ASC']
-        );
+        $items = $gymEquipmentCatalogSynchronizer->synchronizeAndReturnItems($gymProfile);
+        $availableCount = count(array_filter($items, static fn (GymEquipment $item): bool => $item->isAvailable()));
 
         return $this->render('gym/equipment.html.twig', [
             'currentUser' => $currentUserProvider->getUser(),
             'gymProfile' => $gymProfile,
             'items' => $items,
+            'availableCount' => $availableCount,
+            'unavailableCount' => count($items) - $availableCount,
         ]);
     }
 

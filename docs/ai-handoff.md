@@ -306,3 +306,39 @@ La pagina `/statistics/exercises/{slug}` mostra ora due mini-grafici HTML/CSS pe
 Riorganizzato il menu principale in `templates/base.html.twig` per evitare sovrapposizioni nella barra superiore. Le voci operative sono state raggruppate in due dropdown: `Palestra`, che contiene La mia palestra, Attrezzature ed Esercizi, e `Allenamento`, che contiene Schede, Calibrazione e Diario. Restano come link diretti Dashboard e Statistiche, perché sono aree di ingresso principali.
 
 Aggiunte piccole regole CSS nello stesso template per mantenere compatte le etichette del menu e troncare il nome utente quando lo spazio orizzontale è limitato. Nessuna modifica ai controller, alle rotte, al database o alla logica applicativa.
+
+## Step 34A - Revisione scientifica 1RM stimato
+
+Raffinata la metrica di forza stimata introdotta nello Step 32E. `EstimatedStrengthCalculator` non tratta più le serie molto lunghe come stime valide del massimale: le stime fino a 15 ripetizioni equivalenti restano standard, quelle da più di 15 fino a 20 sono marcate come indicative, mentre oltre 20 ripetizioni equivalenti non vengono usate per il `1RM stimato`.
+
+La UI usa ora la dicitura `1RM stimato` invece di `Miglior stimato`, con note esplicite che chiariscono che si tratta di una stima teorica ricavata da peso, ripetizioni e RIR, non di un test massimale reale. Le tabelle e le card mostrano un avviso quando la stima è indicativa o quando una serie è troppo lunga per alimentare la metrica. Non sono state aggiunte tabelle o migration.
+
+## Step 34B - Qualità della stima 1RM
+
+Aggiunto un livello di trasparenza alla metrica `1RM stimato`. `EstimatedStrengthCalculator` espone ora anche lo stato della stima (`standard`, `indicative`, `excluded`) e le ripetizioni equivalenti usate per decidere l'affidabilità. Le statistiche contano quante serie filtrate producono una stima standard, quante solo indicativa e quante vengono escluse perché troppo lunghe.
+
+La pagina `/statistics` mostra il riepilogo qualità nel box informativo generale e nelle card esercizio. La pagina `/statistics/exercises/{slug}` mostra lo stesso riepilogo per lo storico filtrato del singolo esercizio; nelle tabelle delle serie compare anche `Reps eq.`, così l'utente può capire perché una serie è stata marcata come indicativa o esclusa. Non sono state aggiunte tabelle o migration.
+
+## Step 35A - Catalogo diretto attrezzatura ed esercizi
+
+Aggiunto un catalogo seed diretto tramite `src/DataFixtures/FitnessCatalog.php`. Il catalogo contiene le 90 attrezzature e i 100 esercizi forniti nei file Markdown dell'utente, normalizzati in array PHP con slug, descrizione, tipo, modalità di tracking, muscoli principali/secondari, attrezzatura di default, incremento kg e flag fondamentale dove applicabile.
+
+`AppFixtures` mantiene i seed demo storici e aggiunge il nuovo catalogo tramite merge. Durante il caricamento fixture vengono ignorati gli slug già presenti, così non si creano duplicati con le voci già esistenti come `manubri`, `lat-machine`, `panca-piana`, `panca-piana-bilanciere`, `leg-extension` o `leg-press`. Il profilo palestra demo rende automaticamente disponibili anche le nuove attrezzature create dal catalogo.
+
+Aggiunto anche il comando `app:catalog:seed`, che permette di inserire o aggiornare direttamente il catalogo in un database esistente senza eseguire un reload completo delle fixture e senza cancellare utenti, schede o diario. Aggiunto `tests/Unit/FitnessCatalogTest.php` per verificare quantità del catalogo, unicità degli slug e coerenza dei riferimenti all'attrezzatura. Nessuna migration: la modifica usa lo schema già presente.
+
+## Step 35B - Filtri catalogo esteso
+
+Dopo il caricamento diretto del catalogo esteso, le liste Attrezzature ed Esercizi sono state rese più consultabili. Aggiunto `CatalogListFilter`, servizio applicativo che filtra le collezioni già caricate per testo libero, tipo, macchina/attrezzo, muscolo, attrezzatura, tracking mode, tipo esercizio, disponibilità nella palestra e flag fondamentale.
+
+La pagina `/equipment` ora ha un pannello filtri con ricerca, tipo e macchina/attrezzo. La pagina `/exercises` ora ha filtri per ricerca testuale, muscolo, attrezzatura, tracking, tipo, fondamentali/complementari e solo disponibili nella mia palestra. Il pannello `Aggiungi esercizio` dentro il dettaglio scheda mantiene il select classico, ma ora include una ricerca client-side che filtra le opzioni senza ricaricare la pagina, utile con un catalogo da 100 esercizi.
+
+Nessuna modifica allo schema database. I filtri sono solo di consultazione e non cambiano il catalogo.
+
+## Step 35C - Sincronizzazione attrezzature palestra
+
+Corretto il comportamento della pagina `La mia palestra`. Dopo l'estensione del catalogo, la pagina mostrava solo le righe già presenti in `GymEquipment`, quindi le attrezzature aggiunte in `Equipment` tramite catalogo potevano non comparire finché non venivano collegate manualmente al profilo palestra.
+
+Aggiunto `GymEquipmentCatalogSynchronizer`, servizio che garantisce una riga `GymEquipment` per ogni `Equipment` del catalogo e per ogni palestra interessata. La pagina `/gym/equipment` ora chiama il servizio prima del render e mostra sempre tutto il catalogo, creando come presenti di default eventuali collegamenti mancanti; l'utente può poi segnare come non presenti gli attrezzi che non possiede. Il comando `app:catalog:seed` sincronizza anche i collegamenti palestra-attrezzatura per i profili palestra già esistenti, così un database popolato viene aggiornato in modo coerente senza cancellare dati.
+
+La UI della pagina ora usa la terminologia `presente` / `non presente` e mostra conteggi totali, presenti e non presenti. Non sono state aggiunte tabelle o migration: la correzione usa la tabella ponte esistente `GymEquipment`.

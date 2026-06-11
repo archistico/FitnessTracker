@@ -3,7 +3,7 @@
 {% block title %}Statistiche · FitnessTracker{% endblock %}
 {% block page_title %}Statistiche{% endblock %}
 {% block page_subtitle %}
-    <div class="text-secondary mt-1">Riepilogo base di diario, volume, ripetizioni e progressione per esercizio.</div>
+    <div class="text-secondary mt-1">Riepilogo di diario, volume, ripetizioni, RIR e 1RM stimato.</div>
 {% endblock %}
 {% block page_actions %}
     <div class="btn-list">
@@ -51,6 +51,15 @@
                 <a class="btn btn-outline-secondary" href="{{ path('app_statistics_index') }}">Azzera filtri</a>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="alert alert-info" role="alert">
+    Il <strong>1RM stimato</strong> è una stima teorica ricavata da peso, ripetizioni e RIR: non equivale a un test massimale reale. Le serie molto lunghe non vengono usate per scegliere il miglior 1RM stimato.
+    <div class="small mt-2">
+        Nel filtro attuale: <strong>{{ summary.estimationQuality.standard }}</strong> stime standard,
+        <strong>{{ summary.estimationQuality.indicative }}</strong> indicative e
+        <strong>{{ summary.estimationQuality.excluded }}</strong> serie escluse perché troppo lunghe.
     </div>
 </div>
 
@@ -117,7 +126,7 @@
                     <div class="app-card-number"><span class="ti ti-chart-bar"></span></div>
                     <div>
                         <h3 class="card-title mb-1">Progressione per esercizio</h3>
-                        <div class="text-secondary small">Ordinata per volume totale. Include peso massimo e miglior set stimato.</div>
+                        <div class="text-secondary small">Ordinata per volume totale. Include peso massimo e 1RM stimato teorico.</div>
                     </div>
                 </div>
             </div>
@@ -161,9 +170,11 @@
                                                 <div class="app-info-value">{{ item.bestWeightKg is not null ? item.bestWeightKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
                                             </div>
                                             <div class="app-info-item">
-                                                <div class="app-info-label">Miglior stimato</div>
+                                                <div class="app-info-label">1RM stimato</div>
                                                 <div class="app-info-value">{{ item.bestEstimatedStrengthKg is not null ? item.bestEstimatedStrengthKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
                                                 {% if item.bestEstimatedSetSummary %}<div class="text-secondary small">{{ item.bestEstimatedSetSummary }}</div>{% endif %}
+                                                {% if item.bestEstimatedReliability == 'indicative' %}<div class="text-warning small">Stima indicativa</div>{% endif %}
+                                                <div class="text-secondary small">Standard: {{ item.estimationQuality.standard }} · Indicative: {{ item.estimationQuality.indicative }} · Escluse: {{ item.estimationQuality.excluded }}</div>
                                             </div>
                                             <div class="app-info-item">
                                                 <div class="app-info-label">Ultimo peso</div>
@@ -223,7 +234,7 @@
                                     <th>Serie</th>
                                     <th>Registrato</th>
                                     <th>Volume</th>
-                                    <th>Stimato</th>
+                                    <th>1RM stimato</th>
                                     <th>RIR</th>
                                     <th></th>
                                 </tr>
@@ -239,7 +250,17 @@
                                         <td>{{ row.setNumber }}</td>
                                         <td>{{ row.summary }}</td>
                                         <td>{{ row.volume > 0 ? row.volume|number_format(0, ',', '.') ~ ' kg' : '-' }}</td>
-                                        <td>{{ row.estimatedStrengthKg is not null ? row.estimatedStrengthKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</td>
+                                        <td>
+                                            {% if row.estimatedStrengthKg is not null %}
+                                                <div>{{ row.estimatedStrengthKg|number_format(1, ',', '.') }} kg</div>
+                                                {% if row.estimatedStrengthReliability == 'indicative' %}<div class="text-warning small">Indicativa</div>{% endif %}
+                                                {% if row.estimatedStrengthNotice %}<div class="text-secondary small">{{ row.estimatedStrengthNotice }}</div>{% endif %}
+                                            {% else %}
+                                                <div>-</div>
+                                                {% if row.estimatedStrengthNotice %}<div class="text-secondary small">{{ row.estimatedStrengthNotice }}</div>{% endif %}
+                                            {% endif %}
+                                            {% if row.estimatedStrengthEffectiveReps is not null %}<div class="text-secondary small">Reps eq. {{ row.estimatedStrengthEffectiveReps|number_format(1, ',', '.') }}</div>{% endif %}
+                                        </td>
                                         <td>{{ row.rir is not null ? row.rir|number_format(1, ',', '.') : '-' }}</td>
                                         <td class="text-end">
                                             {% if row.sessionId %}

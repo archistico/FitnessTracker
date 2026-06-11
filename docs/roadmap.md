@@ -263,3 +263,29 @@ Lo storico del singolo esercizio ora include una lettura settimanale. Le ultime 
 ## Step 33A - Navigazione principale compatta
 
 Avviato un passaggio di consolidamento UI sulla navigazione. Il menu alto non mostra più tutte le sezioni come voci separate, perché l'applicazione sta crescendo e la barra orizzontale non è più adatta a ospitare ogni funzione. Le voci sono state raggruppate per area funzionale, mantenendo l'accesso rapido alle pagine principali senza introdurre una sidebar o cambiare architettura.
+
+## Step 34A - Revisione scientifica 1RM stimato
+
+Completato un passaggio di precisione terminologica e metodologica sulle statistiche. Il miglior valore derivato viene ora presentato come `1RM stimato`, con esclusione delle serie troppo lunghe e marcatura delle stime meno affidabili. Questo rende la pagina Statistiche più corretta per l'uso bodybuilding reale, soprattutto quando convivono serie pesanti, serie di ipertrofia e lavori metabolici ad alte ripetizioni.
+
+## Step 34B - Qualità della stima 1RM
+
+Estesa la revisione scientifica del `1RM stimato` con una lettura esplicita della qualità delle stime. Le pagine statistiche ora indicano quante serie sono state considerate standard, quante indicative e quante escluse, evitando che l'utente interpreti un valore derivato come dato assoluto. Questo completa il primo passaggio di trasparenza sulle metriche di forza e prepara una futura guida interna su RM, 1RM stimato, RIR e cedimento tecnico.
+
+## Aggiornamento dopo Step 35A
+
+Il catalogo base ora è molto più ricco: il seed include 90 voci di attrezzatura e 100 esercizi derivati dagli elenchi forniti dall'utente. Il comando `app:catalog:seed` permette di portarli anche in un database esistente senza cancellare i dati operativi. Questo rende più utile la creazione manuale delle schede perché l'utente può scegliere direttamente molti esercizi comuni senza doverli inserire uno per uno.
+
+Il prossimo passo consigliato non è aumentare ancora il numero di voci, ma migliorare la consultazione del catalogo: filtri per gruppo muscolare, tipo esercizio, attrezzatura disponibile e ricerca più comoda nelle pagine Esercizi e Attrezzature.
+
+## Step 35B - Filtri catalogo esteso
+
+Completato il primo miglioramento operativo dopo l'ampliamento del catalogo. Le pagine Attrezzature ed Esercizi non sono più semplici elenchi lunghi: ora includono filtri mirati e conteggio dei risultati. Anche l'aggiunta di un esercizio a una scheda è più gestibile grazie a una ricerca rapida nel select, senza introdurre una nuova UI complessa o dipendenze JavaScript.
+
+Il prossimo passo potrà essere la gestione più comoda della disponibilità attrezzature rispetto al catalogo esteso, oppure una vista a gruppi/paginazione leggera se le liste continueranno a crescere.
+
+## Step 35C - Sincronizzazione attrezzature palestra
+
+Corretto il primo problema emerso con il catalogo esteso: `La mia palestra` deve rappresentare la disponibilità di tutte le attrezzature del catalogo, non solo delle righe già collegate al profilo. La pagina ora si auto-allinea al catalogo e il comando di seed aggiorna anche i collegamenti mancanti, rendendo coerenti catalogo, disponibilità attrezzature e filtri degli esercizi disponibili.
+
+Il prossimo miglioramento naturale potrà essere l'aggiunta di filtri anche dentro `La mia palestra`, perché con l'intero catalogo visibile la pagina diventa corretta ma lunga.

@@ -39,6 +39,7 @@ final class StatisticsController extends AbstractController
         $rirSum = 0.0;
         $rirCount = 0;
         $completedSessionIds = [];
+        $estimationQuality = $this->createEmptyEstimationQuality();
 
         foreach ($sessions as $session) {
             foreach ($session->getExerciseSessions() as $exerciseSession) {
@@ -77,12 +78,35 @@ final class StatisticsController extends AbstractController
                         $setLog->getActualReps(),
                         $setLog->getRir()
                     );
+                    $estimatedStrengthReliability = $estimatedStrengthCalculator->estimateOneRepMaxReliability(
+                        $setLog->getActualWeightKg(),
+                        $setLog->getActualReps(),
+                        $setLog->getRir()
+                    );
+                    $estimatedStrengthNotice = $estimatedStrengthCalculator->estimateOneRepMaxNotice(
+                        $setLog->getActualWeightKg(),
+                        $setLog->getActualReps(),
+                        $setLog->getRir()
+                    );
+                    $estimatedStrengthStatus = $estimatedStrengthCalculator->estimateOneRepMaxStatus(
+                        $setLog->getActualWeightKg(),
+                        $setLog->getActualReps(),
+                        $setLog->getRir()
+                    );
+                    $estimatedStrengthEffectiveReps = $estimatedStrengthCalculator->estimateOneRepMaxEffectiveReps(
+                        $setLog->getActualWeightKg(),
+                        $setLog->getActualReps(),
+                        $setLog->getRir()
+                    );
+                    $this->countEstimationStatus($estimationQuality, $estimatedStrengthStatus);
+                    $this->countEstimationStatus($exerciseStats[$exerciseId]['estimationQuality'], $estimatedStrengthStatus);
                     if ($estimatedStrengthKg !== null && (
                         $exerciseStats[$exerciseId]['bestEstimatedStrengthKg'] === null
                         || $estimatedStrengthKg > $exerciseStats[$exerciseId]['bestEstimatedStrengthKg']
                     )) {
                         $exerciseStats[$exerciseId]['bestEstimatedStrengthKg'] = $estimatedStrengthKg;
                         $exerciseStats[$exerciseId]['bestEstimatedSetSummary'] = $setLog->getActualSummary();
+                        $exerciseStats[$exerciseId]['bestEstimatedReliability'] = $estimatedStrengthReliability;
                     }
 
                     if ($setLog->getRir() !== null) {
@@ -112,6 +136,9 @@ final class StatisticsController extends AbstractController
                         'summary' => $setLog->getActualSummary(),
                         'volume' => $volume,
                         'estimatedStrengthKg' => $estimatedStrengthKg,
+                        'estimatedStrengthReliability' => $estimatedStrengthReliability,
+                        'estimatedStrengthNotice' => $estimatedStrengthNotice,
+                        'estimatedStrengthEffectiveReps' => $estimatedStrengthEffectiveReps,
                         'rir' => $setLog->getRir(),
                     ];
                 }
@@ -155,6 +182,7 @@ final class StatisticsController extends AbstractController
                 'totalVolume' => $totalVolume,
                 'averageRir' => $rirCount > 0 ? $rirSum / $rirCount : null,
                 'exerciseCount' => count($exerciseStats),
+                'estimationQuality' => $estimationQuality,
             ],
             'exerciseStats' => array_slice($exerciseStats, 0, 50),
             'recentRows' => array_slice($recentRows, 0, 20),
@@ -192,7 +220,9 @@ final class StatisticsController extends AbstractController
             'lastWeightKg' => null,
             'bestEstimatedStrengthKg' => null,
             'bestEstimatedSetSummary' => null,
+            'bestEstimatedReliability' => null,
             'averageRir' => null,
+            'estimationQuality' => $this->createEmptyEstimationQuality(),
         ];
 
         $rirSum = 0.0;
@@ -221,12 +251,34 @@ final class StatisticsController extends AbstractController
                         $setLog->getActualReps(),
                         $setLog->getRir()
                     );
+                    $estimatedStrengthReliability = $estimatedStrengthCalculator->estimateOneRepMaxReliability(
+                        $setLog->getActualWeightKg(),
+                        $setLog->getActualReps(),
+                        $setLog->getRir()
+                    );
+                    $estimatedStrengthNotice = $estimatedStrengthCalculator->estimateOneRepMaxNotice(
+                        $setLog->getActualWeightKg(),
+                        $setLog->getActualReps(),
+                        $setLog->getRir()
+                    );
+                    $estimatedStrengthStatus = $estimatedStrengthCalculator->estimateOneRepMaxStatus(
+                        $setLog->getActualWeightKg(),
+                        $setLog->getActualReps(),
+                        $setLog->getRir()
+                    );
+                    $estimatedStrengthEffectiveReps = $estimatedStrengthCalculator->estimateOneRepMaxEffectiveReps(
+                        $setLog->getActualWeightKg(),
+                        $setLog->getActualReps(),
+                        $setLog->getRir()
+                    );
+                    $this->countEstimationStatus($summary['estimationQuality'], $estimatedStrengthStatus);
                     if ($estimatedStrengthKg !== null && (
                         $summary['bestEstimatedStrengthKg'] === null
                         || $estimatedStrengthKg > $summary['bestEstimatedStrengthKg']
                     )) {
                         $summary['bestEstimatedStrengthKg'] = $estimatedStrengthKg;
                         $summary['bestEstimatedSetSummary'] = $setLog->getActualSummary();
+                        $summary['bestEstimatedReliability'] = $estimatedStrengthReliability;
                     }
 
                     if ($setLog->getActualReps() !== null) {
@@ -263,6 +315,7 @@ final class StatisticsController extends AbstractController
                             'bestWeightKg' => null,
                             'bestEstimatedStrengthKg' => null,
                             'bestEstimatedSetSummary' => null,
+                            'bestEstimatedReliability' => null,
                             'rirSum' => 0.0,
                             'rirCount' => 0,
                             'averageRir' => null,
@@ -289,6 +342,7 @@ final class StatisticsController extends AbstractController
                     )) {
                         $sessionSummariesByKey[$sessionKey]['bestEstimatedStrengthKg'] = $estimatedStrengthKg;
                         $sessionSummariesByKey[$sessionKey]['bestEstimatedSetSummary'] = $setLog->getActualSummary();
+                        $sessionSummariesByKey[$sessionKey]['bestEstimatedReliability'] = $estimatedStrengthReliability;
                     }
 
                     if ($setLog->getRir() !== null) {
@@ -312,6 +366,9 @@ final class StatisticsController extends AbstractController
                         'restSecondsActual' => $setLog->getRestSecondsActual(),
                         'volume' => $volume,
                         'estimatedStrengthKg' => $estimatedStrengthKg,
+                        'estimatedStrengthReliability' => $estimatedStrengthReliability,
+                        'estimatedStrengthNotice' => $estimatedStrengthNotice,
+                        'estimatedStrengthEffectiveReps' => $estimatedStrengthEffectiveReps,
                         'rir' => $setLog->getRir(),
                         'perceivedLoad' => $setLog->getPerceivedLoad()?->label(),
                         'perceivedEffort' => $setLog->getPerceivedEffort()?->label(),
@@ -375,11 +432,39 @@ final class StatisticsController extends AbstractController
             'lastWeightKg' => null,
             'bestEstimatedStrengthKg' => null,
             'bestEstimatedSetSummary' => null,
+            'bestEstimatedReliability' => null,
+            'estimationQuality' => $this->createEmptyEstimationQuality(),
             'lastSessionDate' => null,
             'sessionIds' => [],
             'rirSum' => 0.0,
             'rirCount' => 0,
         ];
+    }
+
+    /** @return array{standard:int,indicative:int,excluded:int,total:int} */
+    private function createEmptyEstimationQuality(): array
+    {
+        return [
+            EstimatedStrengthCalculator::RELIABILITY_STANDARD => 0,
+            EstimatedStrengthCalculator::RELIABILITY_INDICATIVE => 0,
+            EstimatedStrengthCalculator::ESTIMATE_STATUS_EXCLUDED => 0,
+            'total' => 0,
+        ];
+    }
+
+    /** @param array{standard:int,indicative:int,excluded:int,total:int} $quality */
+    private function countEstimationStatus(array &$quality, ?string $status): void
+    {
+        if ($status === null) {
+            return;
+        }
+
+        if (!array_key_exists($status, $quality)) {
+            return;
+        }
+
+        $quality[$status]++;
+        $quality['total']++;
     }
 
     private function calculateVolume(SetLog $setLog): float

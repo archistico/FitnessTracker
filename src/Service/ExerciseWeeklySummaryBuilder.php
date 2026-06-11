@@ -5,8 +5,8 @@ namespace App\Service;
 final class ExerciseWeeklySummaryBuilder
 {
     /**
-     * @param list<array{date:\DateTimeImmutable,sessionId:?int,planName:string,sessionType:string,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,averageRir:?float}> $sessionSummaries
-     * @return array{weeks:list<array{weekKey:string,label:string,rangeLabel:string,sessionCount:int,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,averageRir:?float,volumePercent:int,bestEstimatedPercent:int}>,hasData:bool,hasMultipleWeeks:bool}
+     * @param list<array{date:\DateTimeImmutable,sessionId:?int,planName:string,sessionType:string,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,bestEstimatedReliability:?string,averageRir:?float}> $sessionSummaries
+     * @return array{weeks:list<array{weekKey:string,label:string,rangeLabel:string,sessionCount:int,setCount:int,totalReps:int,totalVolume:float,bestWeightKg:?float,bestEstimatedStrengthKg:?float,bestEstimatedReliability:?string,averageRir:?float,volumePercent:int,bestEstimatedPercent:int}>,hasData:bool,hasMultipleWeeks:bool}
      */
     public function build(array $sessionSummaries, int $maxWeeks = 8): array
     {
@@ -36,6 +36,7 @@ final class ExerciseWeeklySummaryBuilder
                     'totalVolume' => 0.0,
                     'bestWeightKg' => null,
                     'bestEstimatedStrengthKg' => null,
+                    'bestEstimatedReliability' => null,
                     'rirWeightedSum' => 0.0,
                     'rirWeight' => 0,
                     'averageRir' => null,
@@ -54,7 +55,10 @@ final class ExerciseWeeklySummaryBuilder
             }
 
             if ($session['bestEstimatedStrengthKg'] !== null) {
-                $weeksByKey[$weekKey]['bestEstimatedStrengthKg'] = max($weeksByKey[$weekKey]['bestEstimatedStrengthKg'] ?? 0, $session['bestEstimatedStrengthKg']);
+                if ($weeksByKey[$weekKey]['bestEstimatedStrengthKg'] === null || $session['bestEstimatedStrengthKg'] > $weeksByKey[$weekKey]['bestEstimatedStrengthKg']) {
+                    $weeksByKey[$weekKey]['bestEstimatedStrengthKg'] = $session['bestEstimatedStrengthKg'];
+                    $weeksByKey[$weekKey]['bestEstimatedReliability'] = $session['bestEstimatedReliability'] ?? null;
+                }
             }
 
             if ($session['averageRir'] !== null && $session['setCount'] > 0) {

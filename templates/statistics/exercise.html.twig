@@ -64,6 +64,15 @@
     </div>
 </div>
 
+<div class="alert alert-info" role="alert">
+    Il <strong>1RM stimato</strong> serve a confrontare serie con peso e ripetizioni diverse. È una stima teorica: le serie oltre 20 ripetizioni equivalenti non alimentano il miglior valore, mentre quelle oltre 15 sono marcate come indicative.
+    <div class="small mt-2">
+        In questo storico filtrato: <strong>{{ summary.estimationQuality.standard }}</strong> stime standard,
+        <strong>{{ summary.estimationQuality.indicative }}</strong> indicative e
+        <strong>{{ summary.estimationQuality.excluded }}</strong> serie escluse perché troppo lunghe.
+    </div>
+</div>
+
 <div class="row row-cards">
     <div class="col-6 col-lg-2">
         <div class="card app-metric-card">
@@ -113,9 +122,10 @@
     <div class="col-6 col-lg-2">
         <div class="card app-metric-card">
             <div class="card-body">
-                <div class="subheader">Miglior stimato</div>
+                <div class="subheader">1RM stimato</div>
                 <div class="h2 mb-2">{{ summary.bestEstimatedStrengthKg is not null ? summary.bestEstimatedStrengthKg|number_format(1, ',', '.') : '-' }}</div>
-                <div class="text-secondary small">Formula Epley su peso, reps e RIR.</div>
+                <div class="text-secondary small">Stima teorica, non massimale reale.</div>
+                {% if summary.bestEstimatedReliability == 'indicative' %}<div class="text-warning small">Basata su ripetizioni alte: indicativa.</div>{% endif %}
             </div>
         </div>
     </div>
@@ -193,12 +203,12 @@
                             <div class="app-mobile-card">
                                 <div class="app-mobile-card-header">
                                     <div>
-                                        <h3 class="card-title mb-1">Miglior set stimato</h3>
+                                        <h3 class="card-title mb-1">1RM stimato</h3>
                                         <div class="small {{ trend.bestEstimatedChange.class }}">{{ trend.bestEstimatedChange.label }}</div>
                                     </div>
                                 </div>
                                 <div class="app-mobile-card-body">
-                                    <div class="app-trend-chart" aria-label="Andamento miglior set stimato">
+                                    <div class="app-trend-chart" aria-label="Andamento 1RM stimato">
                                         {% for point in trend.points %}
                                             <div class="app-trend-column" title="{{ point.date|date('d/m/Y') }} · {{ point.bestEstimatedStrengthKg is not null ? point.bestEstimatedStrengthKg|number_format(1, ',', '.') ~ ' kg stimati' : 'nessuna stima' }}">
                                                 <div class="app-trend-value">{{ point.bestEstimatedStrengthKg is not null ? point.bestEstimatedStrengthKg|number_format(1, ',', '.') : '-' }}</div>
@@ -206,6 +216,7 @@
                                                     <div class="app-trend-fill" style="height: {{ point.bestEstimatedPercent }}%;"></div>
                                                 </div>
                                                 <div class="app-trend-label">{{ point.dateLabel }}</div>
+                                                {% if point.bestEstimatedReliability == 'indicative' %}<div class="text-warning small">indic.</div>{% endif %}
                                             </div>
                                         {% endfor %}
                                     </div>
@@ -265,12 +276,12 @@
                             <div class="app-mobile-card">
                                 <div class="app-mobile-card-header">
                                     <div>
-                                        <h3 class="card-title mb-1">Miglior stimato settimanale</h3>
-                                        <div class="text-secondary small">Migliore stima 1RM trovata nella settimana.</div>
+                                        <h3 class="card-title mb-1">1RM stimato settimanale</h3>
+                                        <div class="text-secondary small">Migliore stima teorica del 1RM trovata nella settimana.</div>
                                     </div>
                                 </div>
                                 <div class="app-mobile-card-body">
-                                    <div class="app-trend-chart" aria-label="Miglior stimato settimanale">
+                                    <div class="app-trend-chart" aria-label="1RM stimato settimanale">
                                         {% for week in weeklyTrend.weeks %}
                                             <div class="app-trend-column" title="{{ week.label }} · {{ week.bestEstimatedStrengthKg is not null ? week.bestEstimatedStrengthKg|number_format(1, ',', '.') ~ ' kg stimati' : 'nessuna stima' }}">
                                                 <div class="app-trend-value">{{ week.bestEstimatedStrengthKg is not null ? week.bestEstimatedStrengthKg|number_format(1, ',', '.') : '-' }}</div>
@@ -278,6 +289,7 @@
                                                     <div class="app-trend-fill" style="height: {{ week.bestEstimatedPercent }}%;"></div>
                                                 </div>
                                                 <div class="app-trend-label">{{ week.rangeLabel }}</div>
+                                                {% if week.bestEstimatedReliability == 'indicative' %}<div class="text-warning small">indic.</div>{% endif %}
                                             </div>
                                         {% endfor %}
                                     </div>
@@ -314,8 +326,9 @@
                                                 <div class="app-info-value">{{ week.bestWeightKg is not null ? week.bestWeightKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
                                             </div>
                                             <div class="app-info-item">
-                                                <div class="app-info-label">Miglior stimato</div>
+                                                <div class="app-info-label">1RM stimato</div>
                                                 <div class="app-info-value">{{ week.bestEstimatedStrengthKg is not null ? week.bestEstimatedStrengthKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
+                                                {% if week.bestEstimatedReliability == 'indicative' %}<div class="text-warning small">Stima indicativa</div>{% endif %}
                                             </div>
                                             <div class="app-info-item">
                                                 <div class="app-info-label">RIR medio</div>
@@ -380,9 +393,10 @@
                                                 <div class="app-info-value">{{ session.bestWeightKg is not null ? session.bestWeightKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
                                             </div>
                                             <div class="app-info-item">
-                                                <div class="app-info-label">Miglior stimato</div>
+                                                <div class="app-info-label">1RM stimato</div>
                                                 <div class="app-info-value">{{ session.bestEstimatedStrengthKg is not null ? session.bestEstimatedStrengthKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
                                                 {% if session.bestEstimatedSetSummary %}<div class="text-secondary small">{{ session.bestEstimatedSetSummary }}</div>{% endif %}
+                                                {% if session.bestEstimatedReliability == 'indicative' %}<div class="text-warning small">Stima indicativa</div>{% endif %}
                                             </div>
                                             <div class="app-info-item">
                                                 <div class="app-info-label">RIR medio</div>
@@ -433,7 +447,7 @@
                                     <th>Previsto</th>
                                     <th>Registrato</th>
                                     <th>Volume</th>
-                                    <th>Stimato</th>
+                                    <th>1RM stimato</th>
                                     <th>RIR</th>
                                     <th>Percezione</th>
                                     <th>Note</th>
@@ -460,7 +474,17 @@
                                             {% endif %}
                                         </td>
                                         <td>{{ row.volume > 0 ? row.volume|number_format(0, ',', '.') ~ ' kg' : '-' }}</td>
-                                        <td>{{ row.estimatedStrengthKg is not null ? row.estimatedStrengthKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</td>
+                                        <td>
+                                            {% if row.estimatedStrengthKg is not null %}
+                                                <div>{{ row.estimatedStrengthKg|number_format(1, ',', '.') }} kg</div>
+                                                {% if row.estimatedStrengthReliability == 'indicative' %}<div class="text-warning small">Indicativa</div>{% endif %}
+                                                {% if row.estimatedStrengthNotice %}<div class="text-secondary small">{{ row.estimatedStrengthNotice }}</div>{% endif %}
+                                            {% else %}
+                                                <div>-</div>
+                                                {% if row.estimatedStrengthNotice %}<div class="text-secondary small">{{ row.estimatedStrengthNotice }}</div>{% endif %}
+                                            {% endif %}
+                                            {% if row.estimatedStrengthEffectiveReps is not null %}<div class="text-secondary small">Reps eq. {{ row.estimatedStrengthEffectiveReps|number_format(1, ',', '.') }}</div>{% endif %}
+                                        </td>
                                         <td>{{ row.rir is not null ? row.rir|number_format(1, ',', '.') : '-' }}</td>
                                         <td>
                                             {% if row.perceivedLoad or row.perceivedEffort %}
