@@ -287,3 +287,17 @@ Nel diario allenamenti le etichette dei campi devono evitare abbreviazioni quand
 - Aggiungere una metrica di miglior set stimato, utile per confrontare peso e ripetizioni anche quando i range cambiano.
 - Collegare le statistiche al futuro aggiornamento assistito del profilo carichi dell'esercizio.
 - Valutare grafici interattivi solo quando le statistiche richiederanno zoom, tooltip avanzati o confronto multi-esercizio.
+
+## Todo dopo Step 32E
+
+- Valutare se mostrare una spiegazione più estesa della formula nelle statistiche o nella futura guida utente.
+- Collegare il miglior set stimato all’aggiornamento assistito del profilo carichi dell’esercizio.
+- Valutare trend su finestre temporali più lunghe, non solo sulle ultime 8 sessioni.
+- Valutare aggregazioni settimanali o mensili quando lo storico inizierà a essere più ampio.
+
+## Todo dopo Step 32F
+
+- Valutare aggregazioni mensili quando lo storico diventerà più ampio.
+- Collegare aggregazione settimanale e miglior stimato all’aggiornamento assistito del profilo carichi.
+- Valutare confronto tra settimana corrente e settimana precedente direttamente nella UI.
+- Valutare una legenda o guida breve per spiegare differenza tra peso migliore, volume e miglior stimato.

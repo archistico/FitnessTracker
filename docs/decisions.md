@@ -141,3 +141,13 @@ La copia di una scheda deve essere disattivata per impostazione predefinita. Que
 ## Decisione Step 32D - grafici leggeri senza librerie esterne
 
 La prima visualizzazione dell'andamento esercizio non introduce Chart.js o altre librerie grafiche. Le statistiche devono restare semplici, veloci e coerenti con la UI mobile-first già esistente. I mini-grafici sono barre HTML/CSS calcolate da dati normalizzati lato PHP tramite `ExerciseTrendBuilder`. Se in futuro serviranno grafici interattivi più complessi, questa scelta potrà essere rivista senza modificare il modello dati.
+
+## Decisione Step 32E - miglior set stimato come metrica derivata
+
+Il miglior set stimato non viene salvato nel database. È una metrica derivata dai dati già presenti nel diario, calcolata al momento nelle statistiche. La formula scelta è Epley, con il RIR trattato come ripetizioni potenziali residue e con limiti prudenziali interni. Questa scelta evita di complicare lo schema dati e permette di cambiare formula in futuro senza migration o pulizie storiche.
+
+## Decisione Step 32F - aggregazione settimanale derivata
+
+L'aggregazione settimanale dello storico esercizio non viene salvata nel database. È una vista derivata dai dati del diario e dai riepiloghi sessione già calcolati per la pagina `/statistics/exercises/{slug}`. Le settimane usano il calendario ISO, con inizio lunedì e fine domenica, così il comportamento resta prevedibile anche quando l'anno cambia.
+
+Il RIR medio settimanale è ponderato sul numero di serie della sessione, non calcolato come semplice media delle medie sessione. Questa scelta evita che una sessione con poche serie pesi quanto una sessione completa.

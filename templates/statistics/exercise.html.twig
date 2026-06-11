@@ -113,6 +113,15 @@
     <div class="col-6 col-lg-2">
         <div class="card app-metric-card">
             <div class="card-body">
+                <div class="subheader">Miglior stimato</div>
+                <div class="h2 mb-2">{{ summary.bestEstimatedStrengthKg is not null ? summary.bestEstimatedStrengthKg|number_format(1, ',', '.') : '-' }}</div>
+                <div class="text-secondary small">Formula Epley su peso, reps e RIR.</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card app-metric-card">
+            <div class="card-body">
                 <div class="subheader">RIR medio</div>
                 <div class="h2 mb-2">{{ summary.averageRir is not null ? summary.averageRir|number_format(1, ',', '.') : '-' }}</div>
                 <div class="text-secondary small">Ripetizioni in riserva.</div>
@@ -134,7 +143,7 @@
             <div class="app-mobile-card-body">
                 {% if trend.hasEnoughData %}
                     <div class="row row-cards">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="app-mobile-card">
                                 <div class="app-mobile-card-header">
                                     <div>
@@ -157,7 +166,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="app-mobile-card">
                                 <div class="app-mobile-card-header">
                                     <div>
@@ -180,12 +189,149 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-4">
+                            <div class="app-mobile-card">
+                                <div class="app-mobile-card-header">
+                                    <div>
+                                        <h3 class="card-title mb-1">Miglior set stimato</h3>
+                                        <div class="small {{ trend.bestEstimatedChange.class }}">{{ trend.bestEstimatedChange.label }}</div>
+                                    </div>
+                                </div>
+                                <div class="app-mobile-card-body">
+                                    <div class="app-trend-chart" aria-label="Andamento miglior set stimato">
+                                        {% for point in trend.points %}
+                                            <div class="app-trend-column" title="{{ point.date|date('d/m/Y') }} · {{ point.bestEstimatedStrengthKg is not null ? point.bestEstimatedStrengthKg|number_format(1, ',', '.') ~ ' kg stimati' : 'nessuna stima' }}">
+                                                <div class="app-trend-value">{{ point.bestEstimatedStrengthKg is not null ? point.bestEstimatedStrengthKg|number_format(1, ',', '.') : '-' }}</div>
+                                                <div class="app-trend-track">
+                                                    <div class="app-trend-fill" style="height: {{ point.bestEstimatedPercent }}%;"></div>
+                                                </div>
+                                                <div class="app-trend-label">{{ point.dateLabel }}</div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 {% else %}
                     <div class="empty">
                         <div class="empty-icon"><span class="ti ti-chart-line"></span></div>
                         <p class="empty-title">Trend non ancora disponibile</p>
                         <p class="empty-subtitle text-secondary">Servono almeno due sessioni registrate con questo esercizio per confrontare peso e volume.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="app-mobile-card">
+            <div class="app-mobile-card-header">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="app-card-number"><span class="ti ti-calendar-week"></span></div>
+                    <div>
+                        <h3 class="card-title mb-1">Aggregazione settimanale</h3>
+                        <div class="text-secondary small">Ultime {{ weeklyTrend.weeks|length }} settimane con dati registrati per questo esercizio.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-mobile-card-body">
+                {% if weeklyTrend.hasData %}
+                    <div class="row row-cards mb-3">
+                        <div class="col-md-6">
+                            <div class="app-mobile-card">
+                                <div class="app-mobile-card-header">
+                                    <div>
+                                        <h3 class="card-title mb-1">Volume settimanale</h3>
+                                        <div class="text-secondary small">Somma kg × ripetizioni per settimana.</div>
+                                    </div>
+                                </div>
+                                <div class="app-mobile-card-body">
+                                    <div class="app-trend-chart" aria-label="Volume settimanale">
+                                        {% for week in weeklyTrend.weeks %}
+                                            <div class="app-trend-column" title="{{ week.label }} · {{ week.totalVolume|number_format(0, ',', '.') }} kg">
+                                                <div class="app-trend-value">{{ week.totalVolume > 0 ? week.totalVolume|number_format(0, ',', '.') : '-' }}</div>
+                                                <div class="app-trend-track">
+                                                    <div class="app-trend-fill" style="height: {{ week.volumePercent }}%;"></div>
+                                                </div>
+                                                <div class="app-trend-label">{{ week.rangeLabel }}</div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="app-mobile-card">
+                                <div class="app-mobile-card-header">
+                                    <div>
+                                        <h3 class="card-title mb-1">Miglior stimato settimanale</h3>
+                                        <div class="text-secondary small">Migliore stima 1RM trovata nella settimana.</div>
+                                    </div>
+                                </div>
+                                <div class="app-mobile-card-body">
+                                    <div class="app-trend-chart" aria-label="Miglior stimato settimanale">
+                                        {% for week in weeklyTrend.weeks %}
+                                            <div class="app-trend-column" title="{{ week.label }} · {{ week.bestEstimatedStrengthKg is not null ? week.bestEstimatedStrengthKg|number_format(1, ',', '.') ~ ' kg stimati' : 'nessuna stima' }}">
+                                                <div class="app-trend-value">{{ week.bestEstimatedStrengthKg is not null ? week.bestEstimatedStrengthKg|number_format(1, ',', '.') : '-' }}</div>
+                                                <div class="app-trend-track">
+                                                    <div class="app-trend-fill" style="height: {{ week.bestEstimatedPercent }}%;"></div>
+                                                </div>
+                                                <div class="app-trend-label">{{ week.rangeLabel }}</div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row row-cards">
+                        {% for week in weeklyTrend.weeks %}
+                            <div class="col-md-6 col-xl-3">
+                                <div class="app-mobile-card">
+                                    <div class="app-mobile-card-header">
+                                        <div>
+                                            <h3 class="card-title mb-1">{{ week.label }}</h3>
+                                            <div class="text-secondary small">{{ week.rangeLabel }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="app-mobile-card-body">
+                                        <div class="app-info-grid">
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Sessioni</div>
+                                                <div class="app-info-value">{{ week.sessionCount }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Serie</div>
+                                                <div class="app-info-value">{{ week.setCount }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Volume</div>
+                                                <div class="app-info-value">{{ week.totalVolume|number_format(0, ',', '.') }} kg</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Miglior peso</div>
+                                                <div class="app-info-value">{{ week.bestWeightKg is not null ? week.bestWeightKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Miglior stimato</div>
+                                                <div class="app-info-value">{{ week.bestEstimatedStrengthKg is not null ? week.bestEstimatedStrengthKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">RIR medio</div>
+                                                <div class="app-info-value">{{ week.averageRir is not null ? week.averageRir|number_format(1, ',', '.') : '-' }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty">
+                        <div class="empty-icon"><span class="ti ti-calendar-week"></span></div>
+                        <p class="empty-title">Aggregazione non disponibile</p>
+                        <p class="empty-subtitle text-secondary">Registra almeno una sessione con questo esercizio per vedere il riepilogo settimanale.</p>
                     </div>
                 {% endif %}
             </div>
@@ -232,6 +378,11 @@
                                             <div class="app-info-item">
                                                 <div class="app-info-label">Peso migliore</div>
                                                 <div class="app-info-value">{{ session.bestWeightKg is not null ? session.bestWeightKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Miglior stimato</div>
+                                                <div class="app-info-value">{{ session.bestEstimatedStrengthKg is not null ? session.bestEstimatedStrengthKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
+                                                {% if session.bestEstimatedSetSummary %}<div class="text-secondary small">{{ session.bestEstimatedSetSummary }}</div>{% endif %}
                                             </div>
                                             <div class="app-info-item">
                                                 <div class="app-info-label">RIR medio</div>
@@ -282,6 +433,7 @@
                                     <th>Previsto</th>
                                     <th>Registrato</th>
                                     <th>Volume</th>
+                                    <th>Stimato</th>
                                     <th>RIR</th>
                                     <th>Percezione</th>
                                     <th>Note</th>
@@ -308,6 +460,7 @@
                                             {% endif %}
                                         </td>
                                         <td>{{ row.volume > 0 ? row.volume|number_format(0, ',', '.') ~ ' kg' : '-' }}</td>
+                                        <td>{{ row.estimatedStrengthKg is not null ? row.estimatedStrengthKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</td>
                                         <td>{{ row.rir is not null ? row.rir|number_format(1, ',', '.') : '-' }}</td>
                                         <td>
                                             {% if row.perceivedLoad or row.perceivedEffort %}

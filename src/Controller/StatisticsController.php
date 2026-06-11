@@ -8,6 +8,8 @@ use App\Entity\WorkoutSession;
 use App\Enum\WorkoutSessionType;
 use App\Service\CurrentUserProvider;
 use App\Service\ExerciseTrendBuilder;
+use App\Service\ExerciseWeeklySummaryBuilder;
+use App\Service\EstimatedStrengthCalculator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class StatisticsController extends AbstractController
 {
     #[Route('/statistics', name: 'app_statistics_index', methods: ['GET'])]
-    public function index(Request $request, EntityManagerInterface $entityManager, CurrentUserProvider $currentUserProvider): Response
+    public function index(Request $request, EntityManagerInterface $entityManager, CurrentUserProvider $currentUserProvider, EstimatedStrengthCalculator $estimatedStrengthCalculator): Response
     {
         $currentUser = $currentUserProvider->getUser();
         $filters = $this->buildFilters($request);
@@ -70,6 +72,19 @@ final class StatisticsController extends AbstractController
                         $exerciseStats[$exerciseId]['totalVolume'] += $volume;
                     }
 
+                    $estimatedStrengthKg = $estimatedStrengthCalculator->estimateOneRepMax(
+                        $setLog->getActualWeightKg(),
+                        $setLog->getActualReps(),
+                        $setLog->getRir()
+                    );
+                    if ($estimatedStrengthKg !== null && (
+                        $exerciseStats[$exerciseId]['bestEstimatedStrengthKg'] === null
+                        || $estimatedStrengthKg > $exerciseStats[$exerciseId]['bestEstimatedStrengthKg']
+                    )) {
+                        $exerciseStats[$exerciseId]['bestEstimatedStrengthKg'] = $estimatedStrengthKg;
+                        $exerciseStats[$exerciseId]['bestEstimatedSetSummary'] = $setLog->getActualSummary();
+                    }
+
                     if ($setLog->getRir() !== null) {
                         $rirSum += $setLog->getRir();
                         ++$rirCount;
@@ -96,6 +111,7 @@ final class StatisticsController extends AbstractController
                         'setNumber' => $setLog->getSetNumber(),
                         'summary' => $setLog->getActualSummary(),
                         'volume' => $volume,
+                        'estimatedStrengthKg' => $estimatedStrengthKg,
                         'rir' => $setLog->getRir(),
                     ];
                 }
@@ -146,7 +162,7 @@ final class StatisticsController extends AbstractController
     }
 
     #[Route('/statistics/exercises/{slug}', name: 'app_statistics_exercise', methods: ['GET'])]
-    public function exercise(string $slug, Request $request, EntityManagerInterface $entityManager, CurrentUserProvider $currentUserProvider, ExerciseTrendBuilder $exerciseTrendBuilder): Response
+    public function exercise(string $slug, Request $request, EntityManagerInterface $entityManager, CurrentUserProvider $currentUserProvider, ExerciseTrendBuilder $exerciseTrendBuilder, ExerciseWeeklySummaryBuilder $exerciseWeeklySummaryBuilder, EstimatedStrengthCalculator $estimatedStrengthCalculator): Response
     {
         $currentUser = $currentUserProvider->getUser();
         $filters = $this->buildFilters($request);
@@ -174,6 +190,8 @@ final class StatisticsController extends AbstractController
             'totalDistanceMeters' => 0.0,
             'bestWeightKg' => null,
             'lastWeightKg' => null,
+            'bestEstimatedStrengthKg' => null,
+            'bestEstimatedSetSummary' => null,
             'averageRir' => null,
         ];
 
@@ -197,6 +215,19 @@ final class StatisticsController extends AbstractController
 
                     $summary['completedSets']++;
                     $summary['totalVolume'] += $volume;
+
+                    $estimatedStrengthKg = $estimatedStrengthCalculator->estimateOneRepMax(
+                        $setLog->getActualWeightKg(),
+                        $setLog->getActualReps(),
+                        $setLog->getRir()
+                    );
+                    if ($estimatedStrengthKg !== null && (
+                        $summary['bestEstimatedStrengthKg'] === null
+                        || $estimatedStrengthKg > $summary['bestEstimatedStrengthKg']
+                    )) {
+                        $summary['bestEstimatedStrengthKg'] = $estimatedStrengthKg;
+                        $summary['bestEstimatedSetSummary'] = $setLog->getActualSummary();
+                    }
 
                     if ($setLog->getActualReps() !== null) {
                         $summary['totalReps'] += $setLog->getActualReps();
@@ -230,6 +261,8 @@ final class StatisticsController extends AbstractController
                             'totalReps' => 0,
                             'totalVolume' => 0.0,
                             'bestWeightKg' => null,
+                            'bestEstimatedStrengthKg' => null,
+                            'bestEstimatedSetSummary' => null,
                             'rirSum' => 0.0,
                             'rirCount' => 0,
                             'averageRir' => null,
@@ -248,6 +281,14 @@ final class StatisticsController extends AbstractController
                             $sessionSummariesByKey[$sessionKey]['bestWeightKg'] ?? 0,
                             $setLog->getActualWeightKg()
                         );
+                    }
+
+                    if ($estimatedStrengthKg !== null && (
+                        $sessionSummariesByKey[$sessionKey]['bestEstimatedStrengthKg'] === null
+                        || $estimatedStrengthKg > $sessionSummariesByKey[$sessionKey]['bestEstimatedStrengthKg']
+                    )) {
+                        $sessionSummariesByKey[$sessionKey]['bestEstimatedStrengthKg'] = $estimatedStrengthKg;
+                        $sessionSummariesByKey[$sessionKey]['bestEstimatedSetSummary'] = $setLog->getActualSummary();
                     }
 
                     if ($setLog->getRir() !== null) {
@@ -270,6 +311,7 @@ final class StatisticsController extends AbstractController
                         'actualResistanceLevel' => $setLog->getActualResistanceLevel(),
                         'restSecondsActual' => $setLog->getRestSecondsActual(),
                         'volume' => $volume,
+                        'estimatedStrengthKg' => $estimatedStrengthKg,
                         'rir' => $setLog->getRir(),
                         'perceivedLoad' => $setLog->getPerceivedLoad()?->label(),
                         'perceivedEffort' => $setLog->getPerceivedEffort()?->label(),
@@ -313,6 +355,7 @@ final class StatisticsController extends AbstractController
             'summary' => $summary,
             'sessionSummaries' => $sessionSummaries,
             'trend' => $exerciseTrendBuilder->build($sessionSummaries),
+            'weeklyTrend' => $exerciseWeeklySummaryBuilder->build($sessionSummaries),
             'rows' => $rows,
         ]);
     }
@@ -330,6 +373,8 @@ final class StatisticsController extends AbstractController
             'totalVolume' => 0.0,
             'bestWeightKg' => null,
             'lastWeightKg' => null,
+            'bestEstimatedStrengthKg' => null,
+            'bestEstimatedSetSummary' => null,
             'lastSessionDate' => null,
             'sessionIds' => [],
             'rirSum' => 0.0,

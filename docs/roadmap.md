@@ -251,3 +251,11 @@ Il blocco statistiche ora permette analisi per periodo e tipo sessione. Questo p
 ## Step 32D - Andamento visuale esercizio
 
 Aggiunto il primo livello di grafico nello storico esercizio. Per evitare dipendenze premature, l'andamento recente è renderizzato con HTML/CSS e dati preparati lato PHP: peso migliore per sessione, volume per sessione e confronto con la sessione precedente. Questo completa la prima iterazione delle statistiche visuali e prepara analisi più evolute come trend su finestre temporali, migliori stimate e aggiornamento assistito dei profili carichi.
+
+## Step 32E - Miglior set stimato
+
+Aggiunta una metrica di forza stimata nelle statistiche, utile per confrontare serie con peso e ripetizioni diverse. La stima usa una formula Epley prudente su peso, ripetizioni e RIR, senza nuove tabelle e senza cambiare il diario. La metrica compare nella pagina Statistiche, nello storico del singolo esercizio, nel riepilogo per sessione, nelle tabelle delle serie e nel grafico recente dell’esercizio.
+
+## Step 32F - Aggregazione settimanale esercizio
+
+Lo storico del singolo esercizio ora include una lettura settimanale. Le ultime settimane con dati registrati vengono aggregate senza nuove tabelle: sessioni, serie, ripetizioni, volume, miglior peso, miglior stimato e RIR medio sono calcolati dai riepiloghi sessione già prodotti dalla pagina statistiche. Questo rende più leggibile la progressione quando le sessioni aumentano e prepara eventuali analisi mensili o confronto tra periodi.

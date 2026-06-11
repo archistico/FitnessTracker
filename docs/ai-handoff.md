@@ -286,3 +286,17 @@ Esteso lo storico del singolo esercizio con una sezione `Andamento recente`. La 
 La logica di preparazione dei dati è stata isolata in `ExerciseTrendBuilder`, così il controller resta più leggibile e la normalizzazione del trend è testabile separatamente. Il servizio prende i riepiloghi per sessione già calcolati dal controller, limita l'analisi alle ultime 8 sessioni, normalizza le percentuali delle barre e produce un confronto rispetto alla sessione precedente.
 
 Non sono state aggiunte tabelle e non serve migration. Il blocco statistiche rimane basato sui dati già presenti nel diario.
+
+## Step 32E - Miglior set stimato
+
+Aggiunto `EstimatedStrengthCalculator`, servizio piccolo e testabile che calcola una stima tipo Epley partendo da peso, ripetizioni e RIR. La stima viene usata solo quando peso e ripetizioni reali sono presenti; il RIR viene considerato come ripetizioni potenziali residue, con limite interno prudente per evitare sovrastime eccessive.
+
+`StatisticsController` ora calcola `bestEstimatedStrengthKg` e `bestEstimatedSetSummary` sia nella pagina `/statistics` sia nello storico `/statistics/exercises/{slug}`. `ExerciseTrendBuilder` include il nuovo dato nei punti del trend e produce anche il confronto con la sessione precedente. I template mostrano la metrica come `Miglior stimato`, mantenendo il significato distinto dal semplice peso massimo.
+
+Non sono state aggiunte tabelle e non serve migration. La modifica resta un livello analitico sopra i dati già registrati nel diario.
+
+## Step 32F - Aggregazione settimanale esercizio
+
+Aggiunta l’aggregazione settimanale nello storico del singolo esercizio. Il nuovo servizio `ExerciseWeeklySummaryBuilder` riceve i riepiloghi per sessione già costruiti da `StatisticsController` e li raggruppa per settimana ISO, mantenendo le ultime settimane in ordine cronologico per la visualizzazione.
+
+La pagina `/statistics/exercises/{slug}` mostra ora due mini-grafici HTML/CSS per volume settimanale e miglior stimato settimanale, più card di dettaglio per settimana con sessioni, serie, volume, miglior peso, miglior stimato e RIR medio. Non sono state introdotte nuove tabelle o migration: tutti i dati sono derivati dal diario.

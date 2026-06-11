@@ -117,7 +117,7 @@
                     <div class="app-card-number"><span class="ti ti-chart-bar"></span></div>
                     <div>
                         <h3 class="card-title mb-1">Progressione per esercizio</h3>
-                        <div class="text-secondary small">Ordinata per volume totale. È una prima vista operativa, senza grafici.</div>
+                        <div class="text-secondary small">Ordinata per volume totale. Include peso massimo e miglior set stimato.</div>
                     </div>
                 </div>
             </div>
@@ -159,6 +159,11 @@
                                             <div class="app-info-item">
                                                 <div class="app-info-label">Miglior peso</div>
                                                 <div class="app-info-value">{{ item.bestWeightKg is not null ? item.bestWeightKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
+                                            </div>
+                                            <div class="app-info-item">
+                                                <div class="app-info-label">Miglior stimato</div>
+                                                <div class="app-info-value">{{ item.bestEstimatedStrengthKg is not null ? item.bestEstimatedStrengthKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</div>
+                                                {% if item.bestEstimatedSetSummary %}<div class="text-secondary small">{{ item.bestEstimatedSetSummary }}</div>{% endif %}
                                             </div>
                                             <div class="app-info-item">
                                                 <div class="app-info-label">Ultimo peso</div>
@@ -218,6 +223,7 @@
                                     <th>Serie</th>
                                     <th>Registrato</th>
                                     <th>Volume</th>
+                                    <th>Stimato</th>
                                     <th>RIR</th>
                                     <th></th>
                                 </tr>
@@ -233,6 +239,7 @@
                                         <td>{{ row.setNumber }}</td>
                                         <td>{{ row.summary }}</td>
                                         <td>{{ row.volume > 0 ? row.volume|number_format(0, ',', '.') ~ ' kg' : '-' }}</td>
+                                        <td>{{ row.estimatedStrengthKg is not null ? row.estimatedStrengthKg|number_format(1, ',', '.') ~ ' kg' : '-' }}</td>
                                         <td>{{ row.rir is not null ? row.rir|number_format(1, ',', '.') : '-' }}</td>
                                         <td class="text-end">
                                             {% if row.sessionId %}
